@@ -11,18 +11,23 @@ from driving_school.utils import get_learner_for_user, to_time
 ACTIVE_BOOKING_STATUSES = ["Requested", "Confirmed", "On Waitlist"]
 
 
-def _require_learner_login():
+def _get_learner():
+	"""Learner for the current request - own profile when logged in, otherwise
+	the demo learner (first Learner on file) so the portal works without login."""
 	user = frappe.session.user
-	if not user or user == "Guest":
-		frappe.throw(_("Please login to continue."), frappe.PermissionError)
+	if user and user != "Guest":
+		name = get_learner_for_user(user)
+		if name:
+			return name
 
-	name = get_learner_for_user(user)
-	if not name:
-		frappe.throw(
-			_("No learner profile is linked to your account. Please contact the school."),
-			frappe.PermissionError,
-		)
-	return name
+	name = frappe.db.get_value("Learner", {}, "name", order_by="creation asc")
+	if name:
+		return name
+
+	frappe.throw(
+		_("No learner records found yet. Add a Learner in the Driving School desk first."),
+		frappe.PermissionError,
+	)
 
 
 def _resolve_bookings(bookings):
@@ -40,7 +45,7 @@ def _resolve_bookings(bookings):
 
 @frappe.whitelist()
 def get_learner_summary():
-	learner = _require_learner_login()
+	learner = _get_learner()
 	doc = frappe.get_cached_doc("Learner", learner)
 
 	active_pkg = frappe.get_all(
@@ -104,7 +109,7 @@ def get_learner_summary():
 @frappe.whitelist()
 def get_resources():
 	"""Active instructors and vehicles for the booking form."""
-	_require_learner_login()
+	_get_learner()
 
 	instructors = frappe.get_all(
 		"Driving Instructor",
@@ -126,7 +131,7 @@ def get_resources():
 @frappe.whitelist()
 def get_available_slots(lesson_date, instructor=None, vehicle=None):
 	"""Return business-hour slots with availability for the logged-in learner."""
-	learner = _require_learner_login()
+	learner = _get_learner()
 	settings = frappe.get_single("Driving School Settings")
 
 	start_t = to_time(settings.business_start_time) if settings.business_start_time else datetime.time(9, 0)
@@ -179,7 +184,7 @@ def get_available_slots(lesson_date, instructor=None, vehicle=None):
 
 @frappe.whitelist()
 def book_lesson(lesson_date, start_time, instructor, vehicle, package=None, remarks=None):
-	learner = _require_learner_login()
+	learner = _get_learner()
 
 	if package:
 		pkg = frappe.get_doc("Learner Package", package)
@@ -208,7 +213,7 @@ def book_lesson(lesson_date, start_time, instructor, vehicle, package=None, rema
 
 @frappe.whitelist()
 def cancel_lesson(lesson_booking):
-	learner = _require_learner_login()
+	learner = _get_learner()
 	doc = frappe.get_doc("Lesson Booking", lesson_booking)
 
 	if doc.learner != learner:
@@ -229,7 +234,7 @@ def cancel_lesson(lesson_booking):
 
 @frappe.whitelist()
 def reschedule_lesson(lesson_booking, lesson_date, start_time, instructor=None, vehicle=None):
-	learner = _require_learner_login()
+	learner = _get_learner()
 	doc = frappe.get_doc("Lesson Booking", lesson_booking)
 
 	if doc.learner != learner:
@@ -253,7 +258,7 @@ def reschedule_lesson(lesson_booking, lesson_date, start_time, instructor=None, 
 
 @frappe.whitelist()
 def get_my_lessons():
-	learner = _require_learner_login()
+	learner = _get_learner()
 	fields = [
 		"name",
 		"lesson_date",
@@ -298,7 +303,7 @@ def get_my_lessons():
 
 @frappe.whitelist()
 def get_my_payments():
-	learner = _require_learner_login()
+	learner = _get_learner()
 
 	payments = frappe.get_all(
 		"Learner Payment",
@@ -342,7 +347,7 @@ def get_my_payments():
 
 @frappe.whitelist()
 def request_payment(package, amount, mode_of_payment, reference_number=None):
-	learner = _require_learner_login()
+	learner = _get_learner()
 
 	pkg = frappe.get_doc("Learner Package", package)
 	if pkg.learner != learner:
@@ -368,7 +373,7 @@ def request_payment(package, amount, mode_of_payment, reference_number=None):
 
 @frappe.whitelist()
 def get_my_progress():
-	learner = _require_learner_login()
+	learner = _get_learner()
 	doc = frappe.get_cached_doc("Learner", learner)
 
 	packages = frappe.get_all(
@@ -442,7 +447,7 @@ def get_my_progress():
 @frappe.whitelist()
 def get_mock_questions(category, count=10):
 	"""Return random active questions WITHOUT exposing correct answers."""
-	_require_learner_login()
+	_get_learner()
 	count = cint(count) or 10
 
 	questions = frappe.get_all(
@@ -457,7 +462,7 @@ def get_mock_questions(category, count=10):
 @frappe.whitelist()
 def submit_mock_test(category, answers):
 	"""Score a mock test submission server-side."""
-	learner = _require_learner_login()
+	learner = _get_learner()
 	settings = frappe.get_single("Driving School Settings")
 	pass_percent = cint(settings.mock_test_pass_percentage) or 60
 
@@ -494,7 +499,7 @@ def submit_mock_test(category, answers):
 
 @frappe.whitelist()
 def submit_feedback(instructor, lesson=None, rating=5, comments=None):
-	learner = _require_learner_login()
+	learner = _get_learner()
 
 	if lesson:
 		booking = frappe.get_doc("Lesson Booking", lesson)

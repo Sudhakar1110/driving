@@ -23,6 +23,27 @@ def get_learner_for_user(user=None):
 	return name
 
 
+def get_learner_for_context():
+	"""Learner for the current request (public demo mode).
+
+	Logged-in users with a linked Learner profile see their own data.
+	Everyone else - guests or users without a profile - falls back to the
+	first Learner on file, so the portal is publicly viewable without any
+	login. Returns ``(learner_name, learner_display_name)`` or ``(None, None)``
+	when there are no learners in the system yet.
+	"""
+	user = frappe.session.user
+	if user and user != "Guest":
+		name = get_learner_for_user(user)
+		if name:
+			return name, frappe.db.get_value("Learner", name, "learner_name")
+
+	name = frappe.db.get_value("Learner", {}, "name", order_by="creation asc")
+	if name:
+		return name, frappe.db.get_value("Learner", name, "learner_name")
+	return None, None
+
+
 def send_email(recipients, subject, message, reference_doctype=None, reference_name=None):
 	"""Safe email helper - logs failures instead of raising."""
 	if not recipients:
