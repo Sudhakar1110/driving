@@ -53,7 +53,7 @@ def before_migrate():
 		modules = (frappe.local.app_modules or {}).get("driving_school")
 		print("driving_school: module map rebuilt -> {}".format(modules))
 
-		# show exactly where Python loads the app from (self-diagnosing migrate)
+		# show exactly where Python loads the app from + what is on disk (self-diagnosing migrate)
 		try:
 			pkg_file = getattr(frappe.get_module("driving_school"), "__file__", "?")
 			mod = frappe.get_module("driving_school.driving_school")
@@ -61,14 +61,29 @@ def before_migrate():
 			mfolder = os.path.dirname(mod_file or "") if mod_file else ""
 			print("driving_school: package at ->", pkg_file)
 			print("driving_school: module folder ->", mfolder)
-			if not os.path.isdir(os.path.join(mfolder, "doctype")):
+			if mfolder and os.path.isdir(mfolder):
+				print("driving_school: module folder contents ->", sorted(os.listdir(mfolder)))
+			doctype_dir = os.path.join(mfolder, "doctype") if mfolder else ""
+			if not os.path.isdir(doctype_dir):
 				print(
-					"driving_school: WARNING - no doctype/ folder at", mfolder,
-					"- Python is loading a stale copy of the app."
-					" Re-run: uv pip install --upgrade -e apps/driving_school"
+					"driving_school: WARNING - no doctype/ folder at", doctype_dir or mfolder,
+					"(app files missing/incomplete on this server - re-download the app)"
 				)
+			else:
+				print("driving_school: doctype/ folder found with", len(os.listdir(doctype_dir)), "entries")
 		except Exception as e:
 			print("driving_school: could not probe module folder:", type(e).__name__, e)
+
+		# how many of our doctypes already exist in the database?
+		try:
+			if frappe.db.table_exists("DocType"):
+				existing = frappe.get_all(
+					"DocType", filters={"module": "Driving School"},
+					pluck="name", limit_page_length=50,
+				)
+				print("driving_school: doctypes already in DB ->", existing or "none")
+		except Exception as e:
+			print("driving_school: db check failed:", type(e).__name__, e)
 
 		if not modules:
 			print(
