@@ -43,17 +43,29 @@ function readJson(file) {
 	}
 }
 
-// ---------------------------------------------------------------- canonical structure
-for (const required of ["hooks.py", "modules.txt", "setup.py", "pyproject.toml", "public", "www"]) {
+// ---------------------------------------------------------------- canonical structure (Frappe v15)
+// repo root = app root; public/ and www/ live INSIDE the python package folder
+for (const required of ["hooks.py", "modules.txt", "patches.txt", "setup.py", "pyproject.toml"]) {
 	if (!fs.existsSync(required)) {
 		errors.push(`Canonical app layout: missing "${required}" at repo root`);
 	}
 }
-for (const required of [`${APP}/__init__.py`, `${APP}/install.py`, `${APP}/api.py`]) {
+for (const required of [
+	`${APP}/__init__.py`,
+	`${APP}/install.py`,
+	`${APP}/api.py`,
+	`${APP}/public`,
+	`${APP}/public/css`,
+	`${APP}/public/js`,
+	`${APP}/www`,
+	`${APP}/www/__init__.py`,
+]) {
 	if (!fs.existsSync(required)) {
 		errors.push(`Canonical app layout: missing "${required}" in app package`);
 	}
 }
+if (fs.existsSync("public")) errors.push('Canonical app layout: "public" must be inside the package (public/ at root is the old v14 layout)');
+if (fs.existsSync("www")) errors.push('Canonical app layout: "www" must be inside the package (www/ at root is the old v14 layout)');
 
 const allFiles = walk(".")
 	.map((f) => f.split(path.sep).join("/"))
@@ -213,7 +225,7 @@ for (const m of hooks.matchAll(/"(daily|hourly)":\s*\[\s*"([^"]+)"/g)) {
 
 for (const m of hooks.matchAll(/"(?:app_include_css|app_include_js)"\s*=\s*\[([^\]]*)\]/gs)) {
 	for (const am of m[1].matchAll(/"(\/assets\/[^"]+)"/g)) {
-		const rel = am[1].replace(/^\/assets\//, "").replace(/^driving_school\//, "public/");
+		const rel = `${APP}/public/${am[1].replace(/^\/assets\/[^\/]+\//, "")}`;
 		if (!fs.existsSync(rel)) {
 			errors.push(`hooks.py: asset "${am[1]}" not found (looked at ${rel})`);
 		}
@@ -237,13 +249,13 @@ if (!new RegExp(`setup\\([^)]*name=["']${APP}["']`).test(setupPy.replace(/\s+/g,
 
 // ---------------------------------------------------------------- portal pages
 const wwwDirs = fs
-	.readdirSync("www", { withFileTypes: true })
+	.readdirSync(`${APP}/www`, { withFileTypes: true })
 	.filter((e) => e.isDirectory())
 	.map((e) => e.name);
 for (const dir of wwwDirs) {
 	for (const ext of ["py", "html", "js"]) {
-		if (!fs.existsSync(`www/${dir}/index.${ext}`)) {
-			errors.push(`www/${dir}: missing index.${ext}`);
+		if (!fs.existsSync(`${APP}/www/${dir}/index.${ext}`)) {
+			errors.push(`${APP}/www/${dir}: missing index.${ext}`);
 		}
 	}
 }
