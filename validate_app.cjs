@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
- * Structural validator for the driving_school Frappe app (canonical bench layout:
- * repo root = app root; python package at <app>/; module folder <app>/<module>/).
- * Run:  node validate_app.cjs
+ * Structural validator for the driving_school Frappe app (Frappe v15 layout:
+ * repo root holds pyproject.toml/setup.py; the python package <app>/ holds
+ * hooks.py, modules.txt, patches.txt, api.py, install.py, public/, www/ and the
+ * module folder <app>/<module>/). Run:  node validate_app.cjs
  */
 const fs = require("fs");
 const path = require("path");
@@ -44,14 +45,20 @@ function readJson(file) {
 }
 
 // ---------------------------------------------------------------- canonical structure (Frappe v15)
-// repo root = app root; public/ and www/ live INSIDE the python package folder
-for (const required of ["hooks.py", "modules.txt", "patches.txt", "setup.py", "pyproject.toml"]) {
+// repo root holds packaging files only (pyproject.toml, setup.py). hooks.py,
+// modules.txt, patches.txt, api.py, install.py, public/, www/ must ALL live
+// INSIDE the python package folder <app>/ because frappe imports them as
+// <app>.hooks / <app>.modules.txt / <app>/<app>/public etc.
+for (const required of ["setup.py", "pyproject.toml"]) {
 	if (!fs.existsSync(required)) {
 		errors.push(`Canonical app layout: missing "${required}" at repo root`);
 	}
 }
 for (const required of [
 	`${APP}/__init__.py`,
+	`${APP}/hooks.py`,
+	`${APP}/modules.txt`,
+	`${APP}/patches.txt`,
 	`${APP}/install.py`,
 	`${APP}/api.py`,
 	`${APP}/public`,
@@ -64,8 +71,11 @@ for (const required of [
 		errors.push(`Canonical app layout: missing "${required}" in app package`);
 	}
 }
-if (fs.existsSync("public")) errors.push('Canonical app layout: "public" must be inside the package (public/ at root is the old v14 layout)');
-if (fs.existsSync("www")) errors.push('Canonical app layout: "www" must be inside the package (www/ at root is the old v14 layout)');
+for (const old of ["hooks.py", "modules.txt", "patches.txt", "public", "www"]) {
+	if (fs.existsSync(old)) {
+		errors.push(`Canonical app layout: "${old}" at repo root - must live inside the package folder (${APP}/${old})`);
+	}
+}
 
 const allFiles = walk(".")
 	.map((f) => f.split(path.sep).join("/"))
@@ -175,7 +185,7 @@ for (const [name, { data, file }] of Object.entries(doctypes)) {
 		errors.push(`${file}: doctype has no autoname and no allow_rename`);
 	}
 
-	const modules = fs.readFileSync("modules.txt", "utf8").split("\n").map((s) => s.trim()).filter(Boolean);
+	const modules = fs.readFileSync(`${APP}/modules.txt`, "utf8").split("\n").map((s) => s.trim()).filter(Boolean);
 	if (!modules.includes(data.module)) {
 		errors.push(`${file}: module "${data.module}" not declared in modules.txt`);
 	}
@@ -205,7 +215,7 @@ for (const file of reportFiles) {
 }
 
 // ---------------------------------------------------------------- hooks & app name files
-const hooks = fs.readFileSync("hooks.py", "utf8");
+const hooks = fs.readFileSync(`${APP}/hooks.py`, "utf8");
 const modulePath = (dotted) => dotted.split(".").slice(0, -1).join("/") + ".py";
 
 const mAfter = hooks.match(/after_install\s*=\s*"([^"]+)"/);
