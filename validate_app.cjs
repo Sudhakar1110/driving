@@ -1,14 +1,13 @@
 #!/usr/bin/env node
 /**
- * Structural validator for the driving_school Frappe app.
- * Run:  node validate_app.js
- * Checks: JSON validity, DocType JSON integrity, module folders, links,
- * fetch_from targets, permissions, reports, hooks references, portal pages.
+ * Structural validator for the driving_school Frappe app (canonical bench layout:
+ * repo root = app root; python package at <app>/; module folder <app>/<module>/).
+ * Run:  node validate_app.cjs
  */
 const fs = require("fs");
 const path = require("path");
 
-const APP = "driving_school";
+const APP = "driving_school"; // app name == python package folder
 const errors = [];
 const warnings = [];
 
@@ -44,7 +43,21 @@ function readJson(file) {
 	}
 }
 
-const allFiles = walk(APP).map((f) => f.split(path.sep).join("/"));
+// ---------------------------------------------------------------- canonical structure
+for (const required of ["hooks.py", "modules.txt", "setup.py", "pyproject.toml", "public", "www"]) {
+	if (!fs.existsSync(required)) {
+		errors.push(`Canonical app layout: missing "${required}" at repo root`);
+	}
+}
+for (const required of [`${APP}/__init__.py`, `${APP}/install.py`, `${APP}/api.py`]) {
+	if (!fs.existsSync(required)) {
+		errors.push(`Canonical app layout: missing "${required}" in app package`);
+	}
+}
+
+const allFiles = walk(".")
+	.map((f) => f.split(path.sep).join("/"))
+	.filter((f) => !f.startsWith(".git/") && !f.startsWith("node_modules/"));
 const jsonFiles = allFiles.filter((f) => f.endsWith(".json"));
 const pyFiles = allFiles.filter((f) => f.endsWith(".py"));
 
@@ -72,8 +85,8 @@ for (const file of doctypeFiles) {
 const moduleFromName = (name) => name.toLowerCase().replace(/\s+/g, "_");
 
 for (const [name, { data, file }] of Object.entries(doctypes)) {
-	// module folder must exist
-	const moduleFolder = `${APP}/${APP}/${moduleFromName(data.module)}`;
+	// module folder must exist: <app>/<module>
+	const moduleFolder = `${APP}/${moduleFromName(data.module)}`;
 	if (!fs.existsSync(moduleFolder)) {
 		errors.push(`${file}: module folder "${moduleFolder}" does not exist for module "${data.module}"`);
 	}
@@ -87,7 +100,6 @@ for (const [name, { data, file }] of Object.entries(doctypes)) {
 		}
 	}
 
-	// child doctypes referenced via Table must exist
 	const fieldnames = new Set();
 	for (const field of data.fields || []) {
 		if (!field.fieldname) {
@@ -111,7 +123,6 @@ for (const [name, { data, file }] of Object.entries(doctypes)) {
 				errors.push(`${file}: Table field "${field.fieldname}" -> "${field.options}" is not istable`);
 			}
 		}
-		// fetch_from must be link.target_field
 		if (field.fetch_from && typeof field.fetch_from === "string" && field.fetch_from.includes(".")) {
 			const [linkField, targetField] = field.fetch_from.split(".");
 			const linkDef = (data.fields || []).find((f) => f.fieldname === linkField);
@@ -133,7 +144,6 @@ for (const [name, { data, file }] of Object.entries(doctypes)) {
 		}
 	}
 
-	// field_order must cover all fields (allowing for section/column breaks)
 	if (Array.isArray(data.field_order)) {
 		const orderSet = new Set(data.field_order);
 		for (const f of data.fields || []) {
@@ -143,7 +153,6 @@ for (const [name, { data, file }] of Object.entries(doctypes)) {
 		}
 	}
 
-	// naming rule sanity
 	if (data.autoname && data.naming_rule !== "Expression") {
 		errors.push(`${file}: autoname present but naming_rule is "${data.naming_rule}"`);
 	}
@@ -154,8 +163,7 @@ for (const [name, { data, file }] of Object.entries(doctypes)) {
 		errors.push(`${file}: doctype has no autoname and no allow_rename`);
 	}
 
-	// module must be declared in modules.txt
-	const modules = fs.readFileSync(`${APP}/modules.txt`, "utf8").split("\n").map((s) => s.trim()).filter(Boolean);
+	const modules = fs.readFileSync("modules.txt", "utf8").split("\n").map((s) => s.trim()).filter(Boolean);
 	if (!modules.includes(data.module)) {
 		errors.push(`${file}: module "${data.module}" not declared in modules.txt`);
 	}
@@ -184,48 +192,57 @@ for (const file of reportFiles) {
 	}
 }
 
-// ---------------------------------------------------------------- hooks
-const hooks = fs.readFileSync(`${APP}/hooks.py`, "utf8");
-// module path = everything before the last dotted segment (the function name)
-// the dotted path already starts with the app name
+// ---------------------------------------------------------------- hooks & app name files
+const hooks = fs.readFileSync("hooks.py", "utf8");
 const modulePath = (dotted) => dotted.split(".").slice(0, -1).join("/") + ".py";
 
 const mAfter = hooks.match(/after_install\s*=\s*"([^"]+)"/);
 if (mAfter) {
-	const modFile = modulePath(mAfter[1]);
-	if (!fs.existsSync(modFile)) {
-		errors.push(`hooks.py: after_install module file ${modFile} not found`);
+	if (!fs.existsSync(modulePath(mAfter[1]))) {
+		errors.push(`hooks.py: after_install module file for "${mAfter[1]}" not found`);
 	}
 } else {
 	errors.push("hooks.py: after_install not defined");
 }
 
-// scheduler events
 for (const m of hooks.matchAll(/"(daily|hourly)":\s*\[\s*"([^"]+)"/g)) {
-	const modPath = modulePath(m[2]);
-	if (!fs.existsSync(modPath)) {
-		errors.push(`hooks.py: scheduler "${m[1]}" -> ${m[2]} module file not found`);
+	if (!fs.existsSync(modulePath(m[2]))) {
+		errors.push(`hooks.py: scheduler "${m[1]}" -> "${m[2]}" module file not found`);
 	}
 }
 
-// asset references
 for (const m of hooks.matchAll(/"(?:app_include_css|app_include_js)"\s*=\s*\[([^\]]*)\]/gs)) {
 	for (const am of m[1].matchAll(/"(\/assets\/[^"]+)"/g)) {
-		const rel = am[1].replace(/^\/assets\//, "").replace(/^driving_school\//, `${APP}/public/`);
+		const rel = am[1].replace(/^\/assets\//, "").replace(/^driving_school\//, "public/");
 		if (!fs.existsSync(rel)) {
 			errors.push(`hooks.py: asset "${am[1]}" not found (looked at ${rel})`);
 		}
 	}
 }
 
+// app name consistency: pyproject.toml + setup.py must agree
+const pyproject = readJsonSafe("pyproject.toml");
+if (pyproject) {
+	if (pyproject.project?.name !== APP) {
+		errors.push(`pyproject.toml: project.name must be "${APP}"`);
+	}
+	if (!pyproject["build-system"]?.["build-backend"]) {
+		errors.push("pyproject.toml: missing [build-system]");
+	}
+}
+const setupPy = fs.readFileSync("setup.py", "utf8");
+if (!new RegExp(`setup\\([^)]*name=["']${APP}["']`).test(setupPy.replace(/\s+/g, " "))) {
+	errors.push(`setup.py: setup(name="${APP}", ...) with a literal name is required`);
+}
+
 // ---------------------------------------------------------------- portal pages
 const wwwDirs = fs
-	.readdirSync(`${APP}/www`, { withFileTypes: true })
+	.readdirSync("www", { withFileTypes: true })
 	.filter((e) => e.isDirectory())
 	.map((e) => e.name);
 for (const dir of wwwDirs) {
 	for (const ext of ["py", "html", "js"]) {
-		if (!fs.existsSync(`${APP}/www/${dir}/index.${ext}`)) {
+		if (!fs.existsSync(`www/${dir}/index.${ext}`)) {
 			errors.push(`www/${dir}: missing index.${ext}`);
 		}
 	}
@@ -246,8 +263,6 @@ for (const jsFile of allFiles.filter((f) => f.endsWith(".js"))) {
 // ---------------------------------------------------------------- py file basic checks
 for (const py of pyFiles) {
 	const src = fs.readFileSync(py, "utf8");
-	if (src.includes("\t\t\t\t\t")) warnings.push(`${py}: deep indentation (possible tab/space mix)`);
-	// simple brace/paren balance check for common mistakes
 	const open = (src.match(/\(/g) || []).length;
 	const close = (src.match(/\)/g) || []).length;
 	if (open !== close) errors.push(`${py}: unbalanced parentheses (${open} open / ${close} close)`);
@@ -264,11 +279,36 @@ if (errors.length) {
 	process.exit(1);
 }
 console.log("\nNo structural errors found.");
-
-if (warnings.length) {
-	console.log(`\n${warnings.length} WARNING(S):`);
-	warnings.forEach((w) => console.log("  [WARN] " + w));
-} else {
-	console.log("No warnings.");
-}
 console.log("\nDoctypes in app: " + Object.keys(doctypes).join(", "));
+
+// ---------------------------------------------------------------- helpers
+function readJsonSafe(file) {
+	try {
+		const text = fs.readFileSync(file, "utf8");
+		if (file.endsWith(".toml")) {
+			// minimal inline-table parse for the keys we need
+			const obj = {};
+			const lines = text.split("\n");
+			let section = null;
+			for (const raw of lines) {
+				const line = raw.trim();
+				if (line.startsWith("[")) {
+					section = line.replace(/^\[|\]$/g, "").trim();
+					continue;
+				}
+				const m = line.match(/^([\w.-]+)\s*=\s*(.+)$/);
+				if (m && section) {
+					const key = m[1];
+					const val = m[2].replace(/^"(.*)"$/, "$1").trim();
+					obj[section] = obj[section] || {};
+					obj[section][key] = val;
+				}
+			}
+			return obj;
+		}
+		return JSON.parse(text);
+	} catch (e) {
+		errors.push(`Could not parse ${file}: ${e.message}`);
+		return null;
+	}
+}

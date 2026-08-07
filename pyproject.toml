@@ -1,0 +1,17 @@
+[project]
+name = "driving_school"
+version = "15.0.0"
+description = "Driving School Manager - learner registration, lesson booking, instructor allocation and payment tracking for Frappe/ERPNext 15"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["driving_school", "driving_school.driving_school"]
+
+[tool.bench]
+frappe-dependencies = { frappe = ">=15" }

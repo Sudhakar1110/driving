@@ -54,11 +54,12 @@ are optional and never block installation.
 # inside your bench directory (init with: bench init --frappe-branch version-15)
 cd frappe-bench
 
-# either copy this folder into apps/driving_school ...
-cp -r <path-to>/driving_school apps/driving_school
+# fetch the app from GitHub (bench auto-detects the app name "driving_school"
+# from pyproject.toml / setup.py and renames the apps/driving folder automatically)
+bench get-app https://github.com/Sudhakar1110/driving.git
 
-# ... or fetch from a git repo
-# bench get-app https://github.com/<your-org>/driving_school
+# or copy the folder manually instead:
+# cp -r <path-to-repo> apps/driving_school
 
 bench --site <your-site> install-app driving_school
 bench migrate
