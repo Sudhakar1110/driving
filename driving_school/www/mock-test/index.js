@@ -80,19 +80,41 @@ frappe.ready(() => {
 
 		$("#submit-btn").prop("disabled", true).text(__("Submitting..."));
 
+		let timedOut = false;
+		const timer = setTimeout(() => {
+			timedOut = true;
+			$("#submit-btn").prop("disabled", false).text(__("Submit Test"));
+			showMsg(__("The server took too long to respond. Please try again."), "danger");
+		}, 25000);
+
 		frappe.call({
 			method: "driving_school.api.submit_mock_test",
 			args: { category: $("#category").val(), answers: answers },
 			callback: (r) => {
+				clearTimeout(timer);
+				if (timedOut) return;
 				$("#submit-btn").prop("disabled", false).text(__("Submit Test"));
 				if (r.exc || !r.message) {
-					showMsg(__("Submission failed. Please try again."), "danger");
+					showMsg(getErrorMsg(r), "danger");
 					return;
 				}
 				renderResults(r.message);
 			},
 		});
 	});
+
+	function getErrorMsg(r) {
+		let msg = __("Submission failed. Please try again.");
+		try {
+			const exc = typeof r.exc === "string" ? JSON.parse(r.exc) : {};
+			if (exc._server_messages && exc._server_messages.length) {
+				msg = exc._server_messages[0].replace(/<[^>]*>/g, "");
+			} else if (exc.exception) {
+				msg = String(exc.exception).replace(/^.*?(Error|Exception):\s*/, "");
+			}
+		} catch (e) {}
+		return msg;
+	}
 
 	function renderResults(res) {
 		const passed = String(res.result || "").toLowerCase().indexOf("pass") !== -1;

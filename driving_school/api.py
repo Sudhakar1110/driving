@@ -484,7 +484,11 @@ def submit_mock_test(category, answers):
 			},
 		)
 
-	attempt.insert(ignore_permissions=True)
+	try:
+		attempt.insert(ignore_permissions=True)
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), "Driving School: mock test submit failed")
+		frappe.throw(_("Could not save your test attempt. Please try again."))
 
 	return {
 		"name": attempt.name,
