@@ -32,6 +32,33 @@ ROLES = [
 ]
 
 
+def before_migrate():
+	"""Purge the stale Redis module-map cache and rebuild it from disk.
+
+	Frappe caches the app -> module map (built from each app's modules.txt)
+	in Redis and reuses that cache verbatim on every startup / migrate. If the
+	cache was built while driving_school had a broken layout (modules.txt
+	missing or at the wrong path), frappe.model.sync.sync_for silently finds
+	zero modules for this app - so migrate completes with NO doctypes, NO
+	reports and NO workspace, and no error at all.
+
+	This hook runs (fresh from disk, bypassing the stale cache) right before
+	the schema sync, so the sync rebuilds the map from disk and the app syncs.
+	"""
+	try:
+		frappe.cache.delete_value(["app_modules", "installed_app_modules", "all_apps"])
+		frappe.setup_module_map(include_all_apps=True)
+		modules = (frappe.local.app_modules or {}).get("driving_school")
+		print("driving_school: module map rebuilt -> {}".format(modules))
+		if not modules:
+			print(
+				"driving_school: WARNING - modules.txt was not found on disk. "
+				"Pull the latest code (git reset --hard upstream/main) and re-run migrate."
+			)
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), "driving_school: before_migrate cache purge failed")
+
+
 def after_install():
 	create_roles()
 	create_default_settings()

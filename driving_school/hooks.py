@@ -9,7 +9,8 @@ app_description = "Driving School Manager - learner registration, lesson booking
 app_email = "support@example.com"
 app_license = "mit"
 
-# Install / uninstall
+# Install / uninstall / migrate
+before_migrate = "driving_school.install.before_migrate"
 after_install = "driving_school.install.after_install"
 before_uninstall = "driving_school.install.before_uninstall"
 
