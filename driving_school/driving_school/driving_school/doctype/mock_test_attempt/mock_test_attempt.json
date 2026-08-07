@@ -1,0 +1,168 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:MTA-{YYYY}-{####}",
+ "creation": "2024-01-01 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "learner",
+  "learner_name",
+  "category",
+  "column_break_identity",
+  "submitted_at",
+  "result",
+  "section_score",
+  "total_questions",
+  "correct_answers",
+  "score_percent",
+  "column_break_score",
+  "pass_percentage",
+  "section_answers",
+  "answers"
+ ],
+ "fields": [
+  {
+   "fieldname": "learner",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Learner",
+   "options": "Learner",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "learner.learner_name",
+   "fieldname": "learner_name",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Learner Name"
+  },
+  {
+   "default": "Car",
+   "fieldname": "category",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Category",
+   "options": "\nCar\nMotorcycle\nHeavy Vehicle\nBus\nGeneral"
+  },
+  {
+   "fieldname": "column_break_identity",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Now",
+   "fieldname": "submitted_at",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Submitted At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "result",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Result",
+   "options": "\nPass\nFail",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_score",
+   "fieldtype": "Section Break",
+   "label": "Score"
+  },
+  {
+   "fieldname": "total_questions",
+   "fieldtype": "Int",
+   "label": "Total Questions",
+   "read_only": 1
+  },
+  {
+   "fieldname": "correct_answers",
+   "fieldtype": "Int",
+   "label": "Correct Answers",
+   "read_only": 1
+  },
+  {
+   "fieldname": "score_percent",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Score (%)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_score",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": 60,
+   "fieldname": "pass_percentage",
+   "fieldtype": "Percent",
+   "label": "Pass Percentage"
+  },
+  {
+   "fieldname": "section_answers",
+   "fieldtype": "Section Break",
+   "label": "Answers"
+  },
+  {
+   "fieldname": "answers",
+   "fieldtype": "Table",
+   "label": "Answers",
+   "options": "Mock Test Answer"
+  }
+ ],
+ "modified": "2024-01-01 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Driving School",
+ "name": "Mock Test Attempt",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Driving School Admin",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Driving School Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Driving Instructor"
+  },
+  {
+   "read": 1,
+   "role": "Learner"
+  }
+ ],
+ "sort_field": "submitted_at",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

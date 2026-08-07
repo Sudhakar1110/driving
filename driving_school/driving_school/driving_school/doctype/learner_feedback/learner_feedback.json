@@ -1,0 +1,137 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:FB-{####}",
+ "creation": "2024-01-01 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "learner",
+  "learner_name",
+  "lesson",
+  "column_break_identity",
+  "instructor",
+  "submitted_at",
+  "section_feedback",
+  "rating",
+  "comments"
+ ],
+ "fields": [
+  {
+   "fieldname": "learner",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Learner",
+   "options": "Learner",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "learner.learner_name",
+   "fieldname": "learner_name",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Learner Name"
+  },
+  {
+   "fieldname": "lesson",
+   "fieldtype": "Link",
+   "label": "Lesson Booking",
+   "options": "Lesson Booking"
+  },
+  {
+   "fieldname": "column_break_identity",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "instructor",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Instructor",
+   "options": "Driving Instructor",
+   "reqd": 1
+  },
+  {
+   "default": "Now",
+   "fieldname": "submitted_at",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Submitted At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_feedback",
+   "fieldtype": "Section Break",
+   "label": "Feedback"
+  },
+  {
+   "default": 5,
+   "fieldname": "rating",
+   "fieldtype": "Rating",
+   "label": "Rating"
+  },
+  {
+   "fieldname": "comments",
+   "fieldtype": "Small Text",
+   "label": "Comments"
+  }
+ ],
+ "modified": "2024-01-01 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Driving School",
+ "name": "Learner Feedback",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Driving School Admin",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Driving School Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Driving Instructor"
+  },
+  {
+   "read": 1,
+   "role": "Driving School Accounts"
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Learner"
+  }
+ ],
+ "sort_field": "submitted_at",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

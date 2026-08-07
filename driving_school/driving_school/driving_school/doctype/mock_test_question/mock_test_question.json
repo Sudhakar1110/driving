@@ -1,0 +1,163 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:Q-{####}",
+ "creation": "2024-01-01 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "question",
+  "category",
+  "topic",
+  "column_break_identity",
+  "is_active",
+  "marks",
+  "section_options",
+  "option_a",
+  "option_b",
+  "option_c",
+  "option_d",
+  "section_answer",
+  "correct_answer",
+  "explanation"
+ ],
+ "fields": [
+  {
+   "fieldname": "question",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Question",
+   "reqd": 1
+  },
+  {
+   "default": "Car",
+   "fieldname": "category",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Category",
+   "options": "\nCar\nMotorcycle\nHeavy Vehicle\nBus\nGeneral"
+  },
+  {
+   "fieldname": "topic",
+   "fieldtype": "Data",
+   "label": "Topic"
+  },
+  {
+   "fieldname": "column_break_identity",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": 1,
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "label": "Active"
+  },
+  {
+   "default": 1,
+   "fieldname": "marks",
+   "fieldtype": "Int",
+   "label": "Marks"
+  },
+  {
+   "fieldname": "section_options",
+   "fieldtype": "Section Break",
+   "label": "Options"
+  },
+  {
+   "fieldname": "option_a",
+   "fieldtype": "Data",
+   "label": "Option A",
+   "reqd": 1
+  },
+  {
+   "fieldname": "option_b",
+   "fieldtype": "Data",
+   "label": "Option B",
+   "reqd": 1
+  },
+  {
+   "fieldname": "option_c",
+   "fieldtype": "Data",
+   "label": "Option C",
+   "reqd": 1
+  },
+  {
+   "fieldname": "option_d",
+   "fieldtype": "Data",
+   "label": "Option D",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_answer",
+   "fieldtype": "Section Break",
+   "label": "Answer"
+  },
+  {
+   "fieldname": "correct_answer",
+   "fieldtype": "Select",
+   "label": "Correct Answer",
+   "options": "\nA\nB\nC\nD",
+   "reqd": 1
+  },
+  {
+   "fieldname": "explanation",
+   "fieldtype": "Small Text",
+   "label": "Explanation"
+  }
+ ],
+ "modified": "2024-01-01 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Driving School",
+ "name": "Mock Test Question",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Driving School Admin",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Driving School Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Driving Instructor"
+  },
+  {
+   "read": 1,
+   "role": "Learner"
+  }
+ ],
+ "search_fields": "question, topic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

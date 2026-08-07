@@ -1,0 +1,205 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:VH-{####}",
+ "creation": "2024-01-01 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "vehicle_number",
+  "vehicle_model",
+  "vehicle_type",
+  "transmission",
+  "fuel_type",
+  "column_break_identity",
+  "registration_date",
+  "insurance_expiry",
+  "permit_expiry",
+  "fitness_expiry",
+  "section_service",
+  "last_service_odometer",
+  "service_interval_km",
+  "next_service_due_km",
+  "column_break_service",
+  "daily_cost",
+  "asset_ref",
+  "status",
+  "is_active",
+  "remarks"
+ ],
+ "fields": [
+  {
+   "fieldname": "vehicle_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Vehicle Number",
+   "reqd": 1
+  },
+  {
+   "fieldname": "vehicle_model",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Model"
+  },
+  {
+   "default": "Car",
+   "fieldname": "vehicle_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Vehicle Type",
+   "options": "\nCar\nMotorcycle\nHeavy Vehicle\nBus\nOther"
+  },
+  {
+   "default": "Manual",
+   "fieldname": "transmission",
+   "fieldtype": "Select",
+   "label": "Transmission",
+   "options": "\nManual\nAutomatic"
+  },
+  {
+   "default": "Petrol",
+   "fieldname": "fuel_type",
+   "fieldtype": "Select",
+   "label": "Fuel Type",
+   "options": "\nPetrol\nDiesel\nElectric\nCNG\nHybrid"
+  },
+  {
+   "fieldname": "column_break_identity",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "registration_date",
+   "fieldtype": "Date",
+   "label": "Registration Date"
+  },
+  {
+   "fieldname": "insurance_expiry",
+   "fieldtype": "Date",
+   "label": "Insurance Expiry"
+  },
+  {
+   "fieldname": "permit_expiry",
+   "fieldtype": "Date",
+   "label": "Permit Expiry"
+  },
+  {
+   "fieldname": "fitness_expiry",
+   "fieldtype": "Date",
+   "label": "Fitness Expiry"
+  },
+  {
+   "fieldname": "section_service",
+   "fieldtype": "Section Break",
+   "label": "Service & Costing"
+  },
+  {
+   "fieldname": "last_service_odometer",
+   "fieldtype": "Int",
+   "label": "Last Service Odometer (km)"
+  },
+  {
+   "fieldname": "service_interval_km",
+   "fieldtype": "Int",
+   "label": "Service Interval (km)"
+  },
+  {
+   "fieldname": "next_service_due_km",
+   "fieldtype": "Int",
+   "label": "Next Service Due (km)"
+  },
+  {
+   "fieldname": "column_break_service",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "daily_cost",
+   "fieldtype": "Currency",
+   "label": "Cost Per Lesson Hour"
+  },
+  {
+   "fieldname": "asset_ref",
+   "fieldtype": "Data",
+   "label": "Linked ERPNext Asset"
+  },
+  {
+   "default": "Available",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "\nAvailable\nIn Service\nMaintenance\nRetired"
+  },
+  {
+   "default": 1,
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "label": "Active"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
+  }
+ ],
+ "modified": "2024-01-01 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Driving School",
+ "name": "Driving Vehicle",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Driving School Admin",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Driving School Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Driving Instructor"
+  },
+  {
+   "read": 1,
+   "role": "Driving School Accounts"
+  },
+  {
+   "read": 1,
+   "role": "Learner"
+  }
+ ],
+ "search_fields": "vehicle_number, vehicle_model",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "title_field": "vehicle_number",
+ "track_changes": 1
+}

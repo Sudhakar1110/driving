@@ -1,0 +1,66 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Book a Lesson") }}{% endblock %}
+
+{% block page_content %}
+<div class="container my-4" style="max-width: 860px;">
+	{% if not learner %}
+		<div class="text-center py-5">
+			<div class="mb-3"><i class="fa fa-user-circle fa-4x text-muted"></i></div>
+			<h4>{{ _("Please login with your learner account") }}</h4>
+			<p class="text-muted">{{ _("Use the email address registered with the driving school.") }}</p>
+			<a class="btn btn-primary" href="/login">{{ _("Login") }}</a>
+		</div>
+	{% else %}
+		<h4>{{ _("Book a Lesson") }}</h4>
+		<p class="text-muted">{{ _("Pick a date, instructor, vehicle and an available time slot.") }}</p>
+		<div id="ds-msg"></div>
+
+		<div id="no-package" class="alert alert-warning" style="display:none">
+			{{ _("You do not have an active package with a zero balance. Please pay your package balance first from") }}
+			<a href="/my-payments">{{ _("My Payments") }}</a>.
+		</div>
+
+		<div id="booking-form" style="display:none">
+			<div class="card ds-card mb-4">
+				<div class="card-header bg-white"><strong>{{ _("Package") }}</strong></div>
+				<div class="card-body">
+					<span class="badge badge-primary" id="pkg-label">—</span>
+					<span class="text-muted ml-2">{{ _("Lessons are counted against your package.") }}</span>
+				</div>
+			</div>
+
+			<div class="card ds-card mb-4">
+				<div class="card-header bg-white"><strong>{{ _("1. Date & Resources") }}</strong></div>
+				<div class="card-body">
+					<div class="row">
+						<div class="col-md-4 form-group">
+							<label>{{ _("Lesson Date") }}</label>
+							<input type="date" class="form-control" id="lesson-date">
+						</div>
+						<div class="col-md-4 form-group">
+							<label>{{ _("Instructor") }}</label>
+							<select class="form-control" id="instructor"></select>
+						</div>
+						<div class="col-md-4 form-group">
+							<label>{{ _("Vehicle") }}</label>
+							<select class="form-control" id="vehicle"></select>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="card ds-card mb-4">
+				<div class="card-header bg-white"><strong>{{ _("2. Choose a Time Slot") }}</strong></div>
+				<div class="card-body">
+					<input type="hidden" id="selected-time">
+					<div class="d-flex flex-wrap" id="slot-grid"></div>
+					<div class="text-muted small mt-2">{{ _("Grey slots are already booked.") }}</div>
+				</div>
+			</div>
+
+			<button class="btn btn-primary btn-lg btn-block" id="book-btn">{{ _("Book Lesson") }}</button>
+		</div>
+	{% endif %}
+</div>
+{% endblock %}

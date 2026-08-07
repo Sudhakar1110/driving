@@ -1,0 +1,169 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:DT-{YYYY}-{####}",
+ "creation": "2024-01-01 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "learner",
+  "learner_name",
+  "test_type",
+  "retake_number",
+  "column_break_identity",
+  "test_date",
+  "start_time",
+  "instructor",
+  "vehicle",
+  "section_result",
+  "result",
+  "score",
+  "remarks"
+ ],
+ "fields": [
+  {
+   "fieldname": "learner",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Learner",
+   "options": "Learner",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "learner.learner_name",
+   "fieldname": "learner_name",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Learner Name"
+  },
+  {
+   "fieldname": "test_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Test Type",
+   "options": "\nTheory\nDriving",
+   "reqd": 1
+  },
+  {
+   "default": 0,
+   "fieldname": "retake_number",
+   "fieldtype": "Int",
+   "label": "Retake Number"
+  },
+  {
+   "fieldname": "column_break_identity",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "test_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Test Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "start_time",
+   "fieldtype": "Time",
+   "label": "Start Time"
+  },
+  {
+   "fieldname": "instructor",
+   "fieldtype": "Link",
+   "label": "Instructor",
+   "options": "Driving Instructor"
+  },
+  {
+   "fieldname": "vehicle",
+   "fieldtype": "Link",
+   "label": "Vehicle",
+   "options": "Driving Vehicle"
+  },
+  {
+   "fieldname": "section_result",
+   "fieldtype": "Section Break",
+   "label": "Result"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "result",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Result",
+   "options": "\nPending\nPass\nFail"
+  },
+  {
+   "fieldname": "score",
+   "fieldtype": "Percent",
+   "label": "Score (%)"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
+  }
+ ],
+ "modified": "2024-01-01 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Driving School",
+ "name": "Driving Test",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Driving School Admin",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Driving School Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Driving Instructor",
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Driving School Accounts"
+  },
+  {
+   "read": 1,
+   "role": "Learner"
+  }
+ ],
+ "sort_field": "test_date",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

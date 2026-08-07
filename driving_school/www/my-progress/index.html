@@ -1,0 +1,125 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("My Progress") }}{% endblock %}
+
+{% block page_content %}
+<div class="container my-4" style="max-width: 960px;">
+	{% if not learner %}
+		<div class="text-center py-5">
+			<div class="mb-3"><i class="fa fa-user-circle fa-4x text-muted"></i></div>
+			<h4>{{ _("Please login with your learner account") }}</h4>
+			<p class="text-muted">{{ _("Use the email address registered with the driving school.") }}</p>
+			<a class="btn btn-primary" href="/login">{{ _("Login") }}</a>
+		</div>
+	{% else %}
+		<h4 class="mb-3">{{ _("My Progress") }}</h4>
+		<div id="ds-msg"></div>
+
+		<div class="row mb-4">
+			<div class="col-6 col-md-3 mb-3">
+				<div class="card ds-card h-100">
+					<div class="card-body">
+						<div class="ds-stat" id="pr-status">—</div>
+						<div class="text-muted small">{{ _("Status") }}</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-6 col-md-3 mb-3">
+				<div class="card ds-card h-100">
+					<div class="card-body">
+						<div class="ds-stat" id="pr-stage">—</div>
+						<div class="text-muted small">{{ _("Training Stage") }}</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-6 col-md-3 mb-3">
+				<div class="card ds-card h-100">
+					<div class="card-body">
+						<div class="ds-stat" id="pr-lessons">—</div>
+						<div class="text-muted small">{{ _("Lessons Used") }}</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-6 col-md-3 mb-3">
+				<div class="card ds-card h-100">
+					<div class="card-body">
+						<div class="ds-stat" id="pr-attend">—</div>
+						<div class="text-muted small">{{ _("Theory Classes Attended") }}</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="card ds-card mb-4">
+			<div class="card-header bg-white"><strong>{{ _("Packages") }}</strong></div>
+			<div class="table-responsive">
+				<table class="table table-hover mb-0">
+					<thead class="thead-light">
+						<tr>
+							<th>{{ _("Package") }}</th>
+							<th>{{ _("Category") }}</th>
+							<th>{{ _("Lessons") }}</th>
+							<th>{{ _("Amount") }}</th>
+							<th>{{ _("Balance") }}</th>
+							<th>{{ _("Expiry") }}</th>
+							<th>{{ _("Status") }}</th>
+						</tr>
+					</thead>
+					<tbody id="packages-table"></tbody>
+				</table>
+			</div>
+		</div>
+
+		<div class="card ds-card mb-4">
+			<div class="card-header bg-white"><strong>{{ _("Mock Tests") }}</strong></div>
+			<div class="table-responsive">
+				<table class="table table-hover mb-0">
+					<thead class="thead-light">
+						<tr>
+							<th>{{ _("Date") }}</th>
+							<th>{{ _("Category") }}</th>
+							<th>{{ _("Score") }}</th>
+							<th>{{ _("Result") }}</th>
+						</tr>
+					</thead>
+					<tbody id="mock-table"></tbody>
+				</table>
+			</div>
+		</div>
+
+		<div class="card ds-card mb-4">
+			<div class="card-header bg-white"><strong>{{ _("Driving Tests") }}</strong></div>
+			<div class="table-responsive">
+				<table class="table table-hover mb-0">
+					<thead class="thead-light">
+						<tr>
+							<th>{{ _("Date") }}</th>
+							<th>{{ _("Type") }}</th>
+							<th>{{ _("Retake") }}</th>
+							<th>{{ _("Score") }}</th>
+							<th>{{ _("Result") }}</th>
+						</tr>
+					</thead>
+					<tbody id="tests-table"></tbody>
+				</table>
+			</div>
+		</div>
+
+		<div class="card ds-card">
+			<div class="card-header bg-white"><strong>{{ _("Theory Class Attendance") }}</strong></div>
+			<div class="table-responsive">
+				<table class="table table-hover mb-0">
+					<thead class="thead-light">
+						<tr>
+							<th>{{ _("Date") }}</th>
+							<th>{{ _("Class") }}</th>
+							<th>{{ _("Status") }}</th>
+						</tr>
+					</thead>
+					<tbody id="attendance-table"></tbody>
+				</table>
+			</div>
+		</div>
+	{% endif %}
+</div>
+{% endblock %}

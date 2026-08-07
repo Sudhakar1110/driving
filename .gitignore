@@ -1,0 +1,30 @@
+# Python / cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+
+# Env / tooling
+.env
+.env.*
+venv/
+.venv/
+node_modules/
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Bench / Frappe sites
+sites/
+*.log
+bench.logs/
+
+# Editors
+.vscode/
+.idea/
+*.swp

@@ -1,0 +1,132 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:ATT-{####}",
+ "creation": "2024-01-01 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "theory_class",
+  "class_title",
+  "class_date",
+  "column_break_identity",
+  "learner",
+  "learner_name",
+  "status",
+  "remarks"
+ ],
+ "fields": [
+  {
+   "fieldname": "theory_class",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Theory Class",
+   "options": "Theory Class",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "theory_class.title",
+   "fieldname": "class_title",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Class Title"
+  },
+  {
+   "fetch_from": "theory_class.class_date",
+   "fieldname": "class_date",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Class Date"
+  },
+  {
+   "fieldname": "column_break_identity",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "learner",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Learner",
+   "options": "Learner",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "learner.learner_name",
+   "fieldname": "learner_name",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Learner Name"
+  },
+  {
+   "default": "Present",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "\nPresent\nAbsent"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
+  }
+ ],
+ "modified": "2024-01-01 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Driving School",
+ "name": "Theory Class Attendance",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Driving School Admin",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Driving School Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Driving Instructor",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Learner"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

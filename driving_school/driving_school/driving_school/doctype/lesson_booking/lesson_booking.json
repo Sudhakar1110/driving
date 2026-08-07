@@ -1,0 +1,238 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:LB-{YYYY}-{####}",
+ "creation": "2024-01-01 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "learner",
+  "learner_name",
+  "mobile_number",
+  "package",
+  "category",
+  "column_break_identity",
+  "instructor",
+  "vehicle",
+  "lesson_date",
+  "start_time",
+  "section_schedule",
+  "duration_minutes",
+  "end_time",
+  "lesson_fee",
+  "column_break_schedule",
+  "status",
+  "cancellation_fee",
+  "section_details",
+  "instructor_notes",
+  "remarks",
+  "reminder_sent",
+  "package_lesson_counted"
+ ],
+ "fields": [
+  {
+   "fieldname": "learner",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Learner",
+   "options": "Learner",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "learner.learner_name",
+   "fieldname": "learner_name",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Learner Name"
+  },
+  {
+   "fetch_from": "learner.mobile_number",
+   "fieldname": "mobile_number",
+   "fieldtype": "Read Only",
+   "label": "Mobile Number"
+  },
+  {
+   "fieldname": "package",
+   "fieldtype": "Link",
+   "label": "Learner Package",
+   "options": "Learner Package"
+  },
+  {
+   "fetch_from": "learner.category",
+   "fieldname": "category",
+   "fieldtype": "Read Only",
+   "label": "Category"
+  },
+  {
+   "fieldname": "column_break_identity",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "instructor",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Instructor",
+   "options": "Driving Instructor",
+   "reqd": 1
+  },
+  {
+   "fieldname": "vehicle",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Vehicle",
+   "options": "Driving Vehicle",
+   "reqd": 1
+  },
+  {
+   "fieldname": "lesson_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Lesson Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "start_time",
+   "fieldtype": "Time",
+   "in_list_view": 1,
+   "label": "Start Time",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_schedule",
+   "fieldtype": "Section Break",
+   "label": "Schedule"
+  },
+  {
+   "default": 60,
+   "fieldname": "duration_minutes",
+   "fieldtype": "Int",
+   "label": "Duration (minutes)"
+  },
+  {
+   "fieldname": "end_time",
+   "fieldtype": "Time",
+   "label": "End Time",
+   "read_only": 1
+  },
+  {
+   "fieldname": "lesson_fee",
+   "fieldtype": "Currency",
+   "label": "Lesson Fee"
+  },
+  {
+   "fieldname": "column_break_schedule",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Requested",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "\nRequested\nConfirmed\nCompleted\nCancelled\nNo Show\nOn Waitlist"
+  },
+  {
+   "fieldname": "cancellation_fee",
+   "fieldtype": "Currency",
+   "label": "Cancellation Fee",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_details",
+   "fieldtype": "Section Break",
+   "label": "Details"
+  },
+  {
+   "fieldname": "instructor_notes",
+   "fieldtype": "Small Text",
+   "label": "Instructor Notes"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "reminder_sent",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Reminder Sent",
+   "read_only": 1
+  },
+  {
+   "fieldname": "package_lesson_counted",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Package Lesson Counted",
+   "read_only": 1
+  }
+ ],
+ "modified": "2024-01-01 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Driving School",
+ "name": "Lesson Booking",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Driving School Admin",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Driving School Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Driving Instructor",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Driving School Accounts"
+  },
+  {
+   "read": 1,
+   "role": "Learner"
+  }
+ ],
+ "sort_field": "lesson_date",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

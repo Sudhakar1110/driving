@@ -1,0 +1,515 @@
+from __future__ import unicode_literals
+
+import datetime
+
+import frappe
+from frappe import _
+from frappe.utils import cint, getdate, nowdate, to_time
+
+from driving_school.utils import get_learner_for_user
+
+ACTIVE_BOOKING_STATUSES = ["Requested", "Confirmed", "On Waitlist"]
+
+
+def _require_learner_login():
+	user = frappe.session.user
+	if not user or user == "Guest":
+		frappe.throw(_("Please login to continue."), frappe.PermissionError)
+
+	name = get_learner_for_user(user)
+	if not name:
+		frappe.throw(
+			_("No learner profile is linked to your account. Please contact the school."),
+			frappe.PermissionError,
+		)
+	return name
+
+
+def _resolve_bookings(bookings):
+	for row in bookings:
+		row["instructor_name"] = frappe.db.get_value(
+			"Driving Instructor", row.instructor, "instructor_name"
+		)
+		row["vehicle_number"] = frappe.db.get_value(
+			"Driving Vehicle", row.vehicle, "vehicle_number"
+		)
+	return bookings
+
+
+# ---------------------------------------------------------------- summary & resources
+
+@frappe.whitelist()
+def get_learner_summary():
+	learner = _require_learner_login()
+	doc = frappe.get_cached_doc("Learner", learner)
+
+	active_pkg = frappe.get_all(
+		"Learner Package",
+		filters={"learner": learner, "status": "Active"},
+		fields=[
+			"name",
+			"package_name",
+			"license_category",
+			"lessons_count",
+			"lessons_used",
+			"discounted_amount",
+			"balance_amount",
+			"expiry_date",
+		],
+		limit_page_length=1,
+	)
+
+	upcoming = _resolve_bookings(
+		frappe.get_all(
+			"Lesson Booking",
+			filters={
+				"learner": learner,
+				"lesson_date": [">=", nowdate()],
+				"status": ["in", ACTIVE_BOOKING_STATUSES],
+			},
+			fields=["name", "lesson_date", "start_time", "instructor", "vehicle", "status"],
+			order_by="lesson_date asc, start_time asc",
+			limit_page_length=5,
+		)
+	)
+
+	next_test = frappe.get_all(
+		"Driving Test",
+		filters={"learner": learner, "result": "Pending"},
+		fields=["name", "test_type", "test_date"],
+		order_by="test_date asc",
+		limit_page_length=1,
+	)
+
+	completed = frappe.db.count("Lesson Booking", {"learner": learner, "status": "Completed"})
+	no_shows = frappe.db.count("Lesson Booking", {"learner": learner, "status": "No Show"})
+
+	return {
+		"learner": {
+			"name": learner,
+			"learner_name": doc.learner_name,
+			"status": doc.status,
+			"training_stage": doc.training_stage,
+			"category": doc.category,
+			"mobile_number": doc.mobile_number,
+		},
+		"active_package": active_pkg[0] if active_pkg else None,
+		"upcoming_lessons": upcoming,
+		"next_test": next_test[0] if next_test else None,
+		"completed_lessons": completed,
+		"no_shows": no_shows,
+	}
+
+
+@frappe.whitelist()
+def get_resources():
+	"""Active instructors and vehicles for the booking form."""
+	_require_learner_login()
+
+	instructors = frappe.get_all(
+		"Driving Instructor",
+		filters={"is_active": 1, "employment_status": ["!=", "Resigned"]},
+		fields=["name", "instructor_name", "photo"],
+		order_by="instructor_name asc",
+	)
+	vehicles = frappe.get_all(
+		"Driving Vehicle",
+		filters={"is_active": 1, "status": "Available"},
+		fields=["name", "vehicle_number", "vehicle_model", "vehicle_type", "transmission"],
+		order_by="vehicle_number asc",
+	)
+	return {"instructors": instructors, "vehicles": vehicles}
+
+
+# ---------------------------------------------------------------- booking
+
+@frappe.whitelist()
+def get_available_slots(lesson_date, instructor=None, vehicle=None):
+	"""Return business-hour slots with availability for the logged-in learner."""
+	learner = _require_learner_login()
+	settings = frappe.get_single("Driving School Settings")
+
+	start_t = to_time(settings.business_start_time) if settings.business_start_time else datetime.time(9, 0)
+	end_t = to_time(settings.business_end_time) if settings.business_end_time else datetime.time(18, 0)
+	duration = cint(settings.lesson_duration_minutes) or 60
+
+	booked = frappe.get_all(
+		"Lesson Booking",
+		filters={"lesson_date": lesson_date, "status": ["in", ACTIVE_BOOKING_STATUSES]},
+		fields=["learner", "instructor", "vehicle", "start_time"],
+	)
+
+	busy = {"learner": set(), "instructor": set(), "vehicle": set()}
+	for b in booked:
+		key = str(b.start_time)
+		busy["learner"].add((b.learner, key))
+		if b.instructor:
+			busy["instructor"].add((b.instructor, key))
+		if b.vehicle:
+			busy["vehicle"].add((b.vehicle, key))
+
+	slots = []
+	cur = datetime.datetime.combine(getdate(lesson_date), start_t)
+	end_dt = datetime.datetime.combine(getdate(lesson_date), end_t)
+	now = datetime.datetime.now()
+
+	while cur < end_dt:
+		key = cur.time().strftime("%H:%M:%S")
+		available = True
+		if instructor and (instructor, key) in busy["instructor"]:
+			available = False
+		if vehicle and (vehicle, key) in busy["vehicle"]:
+			available = False
+		if (learner, key) in busy["learner"]:
+			available = False
+		if getdate(lesson_date) == nowdate() and cur <= now:
+			available = False
+
+		slots.append(
+			{
+				"start_time": key,
+				"end_time": (cur + datetime.timedelta(minutes=duration)).time().strftime("%H:%M:%S"),
+				"available": available,
+			}
+		)
+		cur += datetime.timedelta(minutes=duration)
+
+	return slots
+
+
+@frappe.whitelist()
+def book_lesson(lesson_date, start_time, instructor, vehicle, package=None, remarks=None):
+	learner = _require_learner_login()
+
+	if package:
+		pkg = frappe.get_doc("Learner Package", package)
+		if pkg.learner and pkg.learner != learner:
+			frappe.throw(_("The selected package does not belong to your account."), frappe.PermissionError)
+
+	settings = frappe.get_single("Driving School Settings")
+	status = "Confirmed" if cint(settings.auto_confirm_portal_bookings) else "Requested"
+
+	doc = frappe.get_doc(
+		{
+			"doctype": "Lesson Booking",
+			"learner": learner,
+			"package": package or None,
+			"instructor": instructor,
+			"vehicle": vehicle,
+			"lesson_date": lesson_date,
+			"start_time": start_time,
+			"status": status,
+			"remarks": remarks or "",
+		}
+	)
+	doc.insert(ignore_permissions=True)
+	return {"name": doc.name, "status": doc.status}
+
+
+@frappe.whitelist()
+def cancel_lesson(lesson_booking):
+	learner = _require_learner_login()
+	doc = frappe.get_doc("Lesson Booking", lesson_booking)
+
+	if doc.learner != learner:
+		frappe.throw(_("You can only cancel your own bookings."), frappe.PermissionError)
+	if doc.status in ("Completed", "Cancelled"):
+		frappe.throw(
+			_("This booking cannot be cancelled in its current state ({0}).").format(doc.status)
+		)
+
+	doc.status = "Cancelled"
+	doc.save(ignore_permissions=True)
+	return {
+		"name": doc.name,
+		"status": doc.status,
+		"cancellation_fee": doc.cancellation_fee,
+	}
+
+
+@frappe.whitelist()
+def reschedule_lesson(lesson_booking, lesson_date, start_time, instructor=None, vehicle=None):
+	learner = _require_learner_login()
+	doc = frappe.get_doc("Lesson Booking", lesson_booking)
+
+	if doc.learner != learner:
+		frappe.throw(_("You can only reschedule your own bookings."), frappe.PermissionError)
+	if doc.status not in ("Requested", "Confirmed"):
+		frappe.throw(_("Only requested or confirmed bookings can be rescheduled."))
+
+	doc.lesson_date = lesson_date
+	doc.start_time = start_time
+	doc.reminder_sent = 0
+	if instructor:
+		doc.instructor = instructor
+	if vehicle:
+		doc.vehicle = vehicle
+	doc.save(ignore_permissions=True)
+
+	return {"name": doc.name, "lesson_date": doc.lesson_date, "start_time": doc.start_time}
+
+
+# ---------------------------------------------------------------- lessons & payments
+
+@frappe.whitelist()
+def get_my_lessons():
+	learner = _require_learner_login()
+	fields = [
+		"name",
+		"lesson_date",
+		"start_time",
+		"end_time",
+		"instructor",
+		"vehicle",
+		"status",
+		"instructor_notes",
+		"remarks",
+	]
+
+	upcoming = _resolve_bookings(
+		frappe.get_all(
+			"Lesson Booking",
+			filters={
+				"learner": learner,
+				"lesson_date": [">=", nowdate()],
+				"status": ["in", ACTIVE_BOOKING_STATUSES],
+			},
+			fields=fields,
+			order_by="lesson_date asc, start_time asc",
+			limit_page_length=50,
+		)
+	)
+
+	past = _resolve_bookings(
+		frappe.get_all(
+			"Lesson Booking",
+			filters={
+				"learner": learner,
+				"status": ["in", ["Completed", "Cancelled", "No Show"]],
+			},
+			fields=fields,
+			order_by="lesson_date desc, start_time desc",
+			limit_page_length=50,
+		)
+	)
+
+	return {"upcoming": upcoming, "past": past}
+
+
+@frappe.whitelist()
+def get_my_payments():
+	learner = _require_learner_login()
+
+	payments = frappe.get_all(
+		"Learner Payment",
+		filters={"learner": learner},
+		fields=[
+			"name",
+			"payment_date",
+			"amount",
+			"mode_of_payment",
+			"payment_type",
+			"status",
+			"reference_number",
+		],
+		order_by="payment_date desc",
+		limit_page_length=100,
+	)
+
+	total_paid = frappe.db.sql(
+		"""
+		select ifnull(sum(amount), 0) from `tabLearner Payment`
+		where learner = %(learner)s and docstatus < 2
+			and status in ("Received", "Reconciled")
+			and payment_type != "Refund"
+		""",
+		{"learner": learner},
+	)[0][0]
+
+	active_pkg = frappe.get_all(
+		"Learner Package",
+		filters={"learner": learner, "status": "Active"},
+		fields=["name", "package_name", "balance_amount", "expiry_date", "lessons_used", "lessons_count"],
+		limit_page_length=1,
+	)
+
+	return {
+		"payments": payments,
+		"total_paid": total_paid,
+		"active_package": active_pkg[0] if active_pkg else None,
+	}
+
+
+@frappe.whitelist()
+def request_payment(package, amount, mode_of_payment, reference_number=None):
+	learner = _require_learner_login()
+
+	pkg = frappe.get_doc("Learner Package", package)
+	if pkg.learner != learner:
+		frappe.throw(_("The selected package does not belong to your account."), frappe.PermissionError)
+
+	doc = frappe.get_doc(
+		{
+			"doctype": "Learner Payment",
+			"learner": learner,
+			"package": package,
+			"amount": amount,
+			"mode_of_payment": mode_of_payment,
+			"reference_number": reference_number or "",
+			"payment_type": "Package Fee",
+			"status": "Requested",
+		}
+	)
+	doc.insert(ignore_permissions=True)
+	return {"name": doc.name, "status": doc.status}
+
+
+# ---------------------------------------------------------------- progress & tests
+
+@frappe.whitelist()
+def get_my_progress():
+	learner = _require_learner_login()
+	doc = frappe.get_cached_doc("Learner", learner)
+
+	packages = frappe.get_all(
+		"Learner Package",
+		filters={"learner": learner},
+		fields=[
+			"name",
+			"package_name",
+			"license_category",
+			"lessons_count",
+			"lessons_used",
+			"theory_class_hours",
+			"test_attempts_included",
+			"status",
+			"expiry_date",
+			"discounted_amount",
+			"paid_amount",
+			"balance_amount",
+		],
+		order_by="creation desc",
+		limit_page_length=20,
+	)
+
+	mock_attempts = frappe.get_all(
+		"Mock Test Attempt",
+		filters={"learner": learner},
+		fields=[
+			"name",
+			"category",
+			"score_percent",
+			"correct_answers",
+			"total_questions",
+			"result",
+			"submitted_at",
+		],
+		order_by="submitted_at desc",
+		limit_page_length=20,
+	)
+
+	driving_tests = frappe.get_all(
+		"Driving Test",
+		filters={"learner": learner},
+		fields=["name", "test_type", "test_date", "result", "score", "retake_number"],
+		order_by="test_date desc",
+		limit_page_length=20,
+	)
+
+	attendance = frappe.get_all(
+		"Theory Class Attendance",
+		filters={"learner": learner},
+		fields=["name", "theory_class", "class_title", "class_date", "status"],
+		order_by="class_date desc",
+		limit_page_length=50,
+	)
+
+	return {
+		"learner": {
+			"name": learner,
+			"learner_name": doc.learner_name,
+			"status": doc.status,
+			"training_stage": doc.training_stage,
+			"category": doc.category,
+		},
+		"packages": packages,
+		"mock_attempts": mock_attempts,
+		"driving_tests": driving_tests,
+		"attendance": attendance,
+	}
+
+
+@frappe.whitelist()
+def get_mock_questions(category, count=10):
+	"""Return random active questions WITHOUT exposing correct answers."""
+	_require_learner_login()
+	count = cint(count) or 10
+
+	questions = frappe.get_all(
+		"Mock Test Question",
+		filters={"is_active": 1, "category": category},
+		fields=["name", "question", "option_a", "option_b", "option_c", "option_d", "topic", "marks"],
+		limit_page_length=count,
+	)
+	return questions
+
+
+@frappe.whitelist()
+def submit_mock_test(category, answers):
+	"""Score a mock test submission server-side."""
+	learner = _require_learner_login()
+	settings = frappe.get_single("Driving School Settings")
+	pass_percent = cint(settings.mock_test_pass_percentage) or 60
+
+	attempt = frappe.get_doc(
+		{
+			"doctype": "Mock Test Attempt",
+			"learner": learner,
+			"category": category,
+			"pass_percentage": pass_percent,
+		}
+	)
+
+	for answer in answers or []:
+		attempt.append(
+			"answers",
+			{
+				"question": answer.get("question"),
+				"selected_answer": answer.get("selected_answer"),
+			},
+		)
+
+	attempt.insert(ignore_permissions=True)
+
+	return {
+		"name": attempt.name,
+		"result": attempt.result,
+		"score_percent": attempt.score_percent,
+		"correct_answers": attempt.correct_answers,
+		"total_questions": attempt.total_questions,
+	}
+
+
+# ---------------------------------------------------------------- feedback
+
+@frappe.whitelist()
+def submit_feedback(instructor, lesson=None, rating=5, comments=None):
+	learner = _require_learner_login()
+
+	if lesson:
+		booking = frappe.get_doc("Lesson Booking", lesson)
+		if booking.learner != learner:
+			frappe.throw(_("You can only give feedback for your own lessons."), frappe.PermissionError)
+
+	doc = frappe.get_doc(
+		{
+			"doctype": "Learner Feedback",
+			"learner": learner,
+			"lesson": lesson or None,
+			"instructor": instructor,
+			"rating": cint(rating) or 5,
+			"comments": comments or "",
+		}
+	)
+	doc.insert(ignore_permissions=True)
+	return {"name": doc.name, "status": "Submitted"}

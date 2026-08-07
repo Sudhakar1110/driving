@@ -1,0 +1,68 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2024-01-01 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "question",
+  "question_text",
+  "selected_answer",
+  "correct_answer",
+  "is_correct",
+  "marks"
+ ],
+ "fields": [
+  {
+   "fieldname": "question",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Question",
+   "options": "Mock Test Question",
+   "reqd": 1
+  },
+  {
+   "fieldname": "question_text",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Question Text"
+  },
+  {
+   "fieldname": "selected_answer",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Selected Answer",
+   "options": "\nA\nB\nC\nD"
+  },
+  {
+   "fieldname": "correct_answer",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Correct Answer",
+   "options": "\nA\nB\nC\nD",
+   "read_only": 1
+  },
+  {
+   "fieldname": "is_correct",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Correct?",
+   "read_only": 1
+  },
+  {
+   "default": 1,
+   "fieldname": "marks",
+   "fieldtype": "Int",
+   "label": "Marks"
+  }
+ ],
+ "istable": 1,
+ "modified": "2024-01-01 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Driving School",
+ "name": "Mock Test Answer",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

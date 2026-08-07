@@ -1,0 +1,198 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2024-01-01 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_general",
+  "company_name",
+  "default_branch",
+  "admin_email",
+  "column_break_general",
+  "business_start_time",
+  "business_end_time",
+  "section_booking",
+  "lesson_duration_minutes",
+  "auto_confirm_portal_bookings",
+  "column_break_booking",
+  "max_lessons_per_week",
+  "min_gap_days_between_lessons",
+  "section_cancellation",
+  "cancellation_notice_hours",
+  "cancellation_fee_percent",
+  "section_reminders",
+  "enable_email_reminders",
+  "column_break_reminders",
+  "reminder_hours",
+  "short_reminder_hours",
+  "section_tests",
+  "mock_test_pass_percentage"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_general",
+   "fieldtype": "Section Break",
+   "label": "General"
+  },
+  {
+   "default": "Default Company",
+   "fieldname": "company_name",
+   "fieldtype": "Data",
+   "label": "Company Name"
+  },
+  {
+   "fieldname": "default_branch",
+   "fieldtype": "Link",
+   "label": "Default Branch",
+   "options": "Driving School Branch"
+  },
+  {
+   "fieldname": "admin_email",
+   "fieldtype": "Data",
+   "label": "Admin Email (Alerts)"
+  },
+  {
+   "fieldname": "column_break_general",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "09:00:00",
+   "fieldname": "business_start_time",
+   "fieldtype": "Time",
+   "label": "Business Start Time"
+  },
+  {
+   "default": "18:00:00",
+   "fieldname": "business_end_time",
+   "fieldtype": "Time",
+   "label": "Business End Time"
+  },
+  {
+   "fieldname": "section_booking",
+   "fieldtype": "Section Break",
+   "label": "Booking"
+  },
+  {
+   "default": 60,
+   "fieldname": "lesson_duration_minutes",
+   "fieldtype": "Int",
+   "label": "Lesson Duration (minutes)"
+  },
+  {
+   "default": 1,
+   "fieldname": "auto_confirm_portal_bookings",
+   "fieldtype": "Check",
+   "label": "Auto-confirm Portal Bookings"
+  },
+  {
+   "fieldname": "column_break_booking",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": 3,
+   "fieldname": "max_lessons_per_week",
+   "fieldtype": "Int",
+   "label": "Max Lessons Per Week"
+  },
+  {
+   "default": 1,
+   "fieldname": "min_gap_days_between_lessons",
+   "fieldtype": "Int",
+   "label": "Min Gap Between Lessons (days)"
+  },
+  {
+   "fieldname": "section_cancellation",
+   "fieldtype": "Section Break",
+   "label": "Cancellation"
+  },
+  {
+   "default": 24,
+   "fieldname": "cancellation_notice_hours",
+   "fieldtype": "Int",
+   "label": "Cancellation Notice (hours)"
+  },
+  {
+   "default": 10,
+   "fieldname": "cancellation_fee_percent",
+   "fieldtype": "Percent",
+   "label": "Cancellation Fee (%)"
+  },
+  {
+   "fieldname": "section_reminders",
+   "fieldtype": "Section Break",
+   "label": "Reminders"
+  },
+  {
+   "default": 1,
+   "fieldname": "enable_email_reminders",
+   "fieldtype": "Check",
+   "label": "Enable Email Reminders"
+  },
+  {
+   "fieldname": "column_break_reminders",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": 24,
+   "fieldname": "reminder_hours",
+   "fieldtype": "Int",
+   "label": "Reminder (hours ahead)"
+  },
+  {
+   "default": 2,
+   "fieldname": "short_reminder_hours",
+   "fieldtype": "Int",
+   "label": "Short Reminder (hours ahead)"
+  },
+  {
+   "fieldname": "section_tests",
+   "fieldtype": "Section Break",
+   "label": "Tests"
+  },
+  {
+   "default": 60,
+   "fieldname": "mock_test_pass_percentage",
+   "fieldtype": "Percent",
+   "label": "Mock Test Pass (%)"
+  }
+ ],
+ "issingle": 1,
+ "modified": "2024-01-01 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Driving School",
+ "name": "Driving School Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Driving School Admin",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Driving School Manager"
+  },
+  {
+   "read": 1,
+   "role": "Driving School Accounts"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

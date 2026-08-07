@@ -1,0 +1,101 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("My Payments") }}{% endblock %}
+
+{% block page_content %}
+<div class="container my-4" style="max-width: 960px;">
+	{% if not learner %}
+		<div class="text-center py-5">
+			<div class="mb-3"><i class="fa fa-user-circle fa-4x text-muted"></i></div>
+			<h4>{{ _("Please login with your learner account") }}</h4>
+			<p class="text-muted">{{ _("Use the email address registered with the driving school.") }}</p>
+			<a class="btn btn-primary" href="/login">{{ _("Login") }}</a>
+		</div>
+	{% else %}
+		<h4 class="mb-3">{{ _("My Payments") }}</h4>
+		<div id="ds-msg"></div>
+
+		<div class="row mb-4">
+			<div class="col-md-4 mb-3">
+				<div class="card ds-card h-100">
+					<div class="card-body">
+						<div class="ds-stat text-success" id="p-total-paid">—</div>
+						<div class="text-muted small">{{ _("Total Paid") }}</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4 mb-3">
+				<div class="card ds-card h-100">
+					<div class="card-body">
+						<div class="ds-stat" id="p-balance">—</div>
+						<div class="text-muted small">{{ _("Outstanding Balance") }}</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4 mb-3">
+				<div class="card ds-card h-100">
+					<div class="card-body">
+						<div class="ds-stat" id="p-pkg">—</div>
+						<div class="text-muted small">{{ _("Active Package") }}</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="card ds-card mb-4">
+			<div class="card-header bg-white">
+				<strong>{{ _("Payment History") }}</strong>
+			</div>
+			<div class="table-responsive">
+				<table class="table table-hover mb-0">
+					<thead class="thead-light">
+						<tr>
+							<th>{{ _("Date") }}</th>
+							<th>{{ _("Type") }}</th>
+							<th>{{ _("Mode") }}</th>
+							<th>{{ _("Reference") }}</th>
+							<th class="text-right">{{ _("Amount") }}</th>
+							<th>{{ _("Status") }}</th>
+						</tr>
+					</thead>
+					<tbody id="payment-table"></tbody>
+				</table>
+			</div>
+		</div>
+
+		<div class="card ds-card">
+			<div class="card-header bg-white"><strong>{{ _("Request a Payment") }}</strong></div>
+			<div class="card-body">
+				<p class="text-muted small">
+					{{ _("Record a payment request against your package. The school will confirm it once received (cash, UPI, bank transfer, etc.).") }}
+				</p>
+				<div class="row">
+					<div class="col-md-3 form-group">
+						<label>{{ _("Amount") }}</label>
+						<input type="number" min="0" step="0.01" class="form-control" id="pay-amount">
+					</div>
+					<div class="col-md-3 form-group">
+						<label>{{ _("Mode") }}</label>
+						<select class="form-control" id="pay-mode">
+							<option value="Cash">Cash</option>
+							<option value="Bank Transfer">Bank Transfer</option>
+							<option value="UPI">UPI</option>
+							<option value="Card">Card</option>
+							<option value="Cheque">Cheque</option>
+							<option value="Online">Online</option>
+							<option value="Other">Other</option>
+						</select>
+					</div>
+					<div class="col-md-3 form-group">
+						<label>{{ _("Reference Number") }}</label>
+						<input type="text" class="form-control" id="pay-ref" placeholder="{{ _('UTR / transaction id') }}">
+					</div>
+					<div class="col-md-3 d-flex align-items-end">
+						<button class="btn btn-primary btn-block" id="pay-btn">{{ _("Submit Request") }}</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	{% endif %}
+</div>
+{% endblock %}
