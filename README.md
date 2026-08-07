@@ -54,18 +54,28 @@ are optional and never block installation.
 # inside your bench directory (init with: bench init --frappe-branch version-15)
 cd frappe-bench
 
-# fetch the app from GitHub (bench auto-detects the app name "driving_school"
-# from pyproject.toml / setup.py and renames the apps/driving folder automatically)
-bench get-app https://github.com/Sudhakar1110/driving.git
+# Recommended: fetch with --skip-assets, then build manually.
+# This avoids the asset build that bench runs *during* get-app, which can crash
+# on some bench versions with a `path.resolve(undefined)` esbuild error if the
+# app is not yet registered in sites/apps.txt at that moment.
+rm -rf apps/driving_school   # only needed if a previous get-app left a partial clone
+bench get-app https://github.com/Sudhakar1110/driving.git --skip-assets
 
-# or copy the folder manually instead:
-# cp -r <path-to-repo> apps/driving_school
+# bench auto-detects the app name "driving_school" (from pyproject.toml/setup.py)
+# and renames the apps/driving folder automatically. Verify it is registered:
+grep driving_school sites/apps.txt || echo driving_school >> sites/apps.txt
 
+bench build --app driving_school   # now builds cleanly (public/ lives in the package per v15 layout)
 bench --site <your-site> install-app driving_school
 bench migrate
-bench build
 bench restart
 ```
+
+> Alternative: `bench get-app https://github.com/Sudhakar1110/driving.git` (no
+> `--skip-assets`) usually works too — the app name resolution, `setup.py` and
+> the v15 `public/`+`www/` inside-the-package layout are all in place.
+>
+> Or copy the folder manually: `cp -r <path-to-repo> apps/driving_school`.
 
 > ERPNext optional: `bench --site <site> install-app erpnext` first if you want
 > Sales Invoice / Asset integration. The app runs fine without it.
