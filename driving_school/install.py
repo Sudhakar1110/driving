@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import os
+
 import frappe
 
 
@@ -50,6 +52,24 @@ def before_migrate():
 		frappe.setup_module_map(include_all_apps=True)
 		modules = (frappe.local.app_modules or {}).get("driving_school")
 		print("driving_school: module map rebuilt -> {}".format(modules))
+
+		# show exactly where Python loads the app from (self-diagnosing migrate)
+		try:
+			pkg_file = getattr(frappe.get_module("driving_school"), "__file__", "?")
+			mod = frappe.get_module("driving_school.driving_school")
+			mod_file = getattr(mod, "__file__", "?")
+			mfolder = os.path.dirname(mod_file or "") if mod_file else ""
+			print("driving_school: package at ->", pkg_file)
+			print("driving_school: module folder ->", mfolder)
+			if not os.path.isdir(os.path.join(mfolder, "doctype")):
+				print(
+					"driving_school: WARNING - no doctype/ folder at", mfolder,
+					"- Python is loading a stale copy of the app."
+					" Re-run: uv pip install --upgrade -e apps/driving_school"
+				)
+		except Exception as e:
+			print("driving_school: could not probe module folder:", type(e).__name__, e)
+
 		if not modules:
 			print(
 				"driving_school: WARNING - modules.txt was not found on disk. "
