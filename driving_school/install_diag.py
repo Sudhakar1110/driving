@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import os
+import sys
 import traceback
 
 import frappe
@@ -23,14 +24,28 @@ def run():
 	except Exception as e:
 		print("   ERROR:", type(e).__name__, e)
 
-	print("\n[2] driving_school package location:")
+	print("\n[2] WHERE Python loads 'driving_school' from (the critical check):")
 	try:
 		mod = frappe.get_module("driving_school")
-		print("   ", getattr(mod, "__file__", "?"))
+		print("   driving_school.__file__:", getattr(mod, "__file__", "?"))
+		print("   get_app_path            :", frappe.get_app_path("driving_school"))
 	except Exception as e:
 		print("   ERROR importing driving_school:", type(e).__name__, e)
 
-	print("\n[3] module map (frappe.local.app_modules) - THE critical check:")
+	print("\n[3] sys.path entries containing a driving_school folder (catches stale copies):")
+	try:
+		found = False
+		for p in sys.path:
+			cand = os.path.join(p, "driving_school")
+			if p and os.path.isdir(cand):
+				found = True
+				print("   candidate:", cand)
+		if not found:
+			print("   none (package loads from an editable install elsewhere)")
+	except Exception as e:
+		print("   ERROR:", type(e).__name__, e)
+
+	print("\n[4] module map (frappe.local.app_modules):")
 	try:
 		apps = frappe.local.app_modules or {}
 		print("   app_modules['driving_school']:", apps.get("driving_school"))
@@ -38,7 +53,7 @@ def run():
 	except Exception as e:
 		print("   ERROR:", type(e).__name__, e)
 
-	print("\n[4] modules.txt on disk (read directly, bypasses cache):")
+	print("\n[5] modules.txt on disk (read directly, bypasses cache):")
 	try:
 		mp = frappe.get_app_path("driving_school", "modules.txt")
 		print("   path:", mp)
@@ -47,25 +62,27 @@ def run():
 	except Exception as e:
 		print("   ERROR:", type(e).__name__, e)
 
-	print("\n[5] module path and doctype files on disk:")
+	print("\n[6] sync path probe (exactly what frappe.model.sync.sync_for walks):")
 	try:
-		mod_path = frappe.get_module_path("Driving School")
-		print("   module path:", mod_path)
-		doctype_dir = os.path.join(mod_path, "doctype")
-		if os.path.isdir(doctype_dir):
-			names = sorted(
-				n for n in os.listdir(doctype_dir)
-				if os.path.isdir(os.path.join(doctype_dir, n))
-			)
-			print("   doctype folders on disk:", len(names))
-			for n in names:
+		mod = frappe.get_module("driving_school.driving_school")
+		folder = os.path.dirname(getattr(mod, "__file__", "") or "")
+		print("   driving_school.driving_school.__file__:", getattr(mod, "__file__", "?"))
+		print("   folder:", folder)
+		print("   folder exists:", os.path.exists(folder))
+		if os.path.exists(folder):
+			print("   folder contents:", sorted(os.listdir(folder)))
+		doctype_dir = os.path.join(folder, "doctype")
+		print("   doctype dir exists:", os.path.exists(doctype_dir))
+		if os.path.exists(doctype_dir):
+			print("   doctype subfolders:", len(os.listdir(doctype_dir)))
+			for n in sorted(os.listdir(doctype_dir)):
 				print("      -", n)
 		else:
-			print("   NO doctype folder found at", doctype_dir)
+			print("   >>> NO doctype folder at", doctype_dir, "- this is why sync finds nothing")
 	except Exception as e:
-		print("   ERROR resolving module path:", type(e).__name__, e)
+		print("   ERROR resolving module:", type(e).__name__, e)
 
-	print("\n[6] DocTypes in database with module 'Driving School':")
+	print("\n[7] DocTypes in database with module 'Driving School':")
 	try:
 		names = frappe.get_all(
 			"DocType", filters={"module": "Driving School"}, pluck="name", limit_page_length=100
@@ -76,7 +93,7 @@ def run():
 	except Exception as e:
 		print("   ERROR querying DocType:", type(e).__name__, e)
 
-	print("\n[7] Workspaces in database with module 'Driving School':")
+	print("\n[8] Workspaces in database with module 'Driving School':")
 	try:
 		names = frappe.get_all(
 			"Workspace", filters={"module": "Driving School"}, pluck="name", limit_page_length=100
@@ -87,7 +104,7 @@ def run():
 	except Exception as e:
 		print("   ERROR querying Workspace:", type(e).__name__, e)
 
-	print("\n[8] Sample tables exist?")
+	print("\n[9] Sample tables exist?")
 	try:
 		print("   tabLearner:", frappe.db.table_exists("tabLearner"))
 		print("   tabLesson Booking:", frappe.db.table_exists("tabLesson Booking"))
@@ -95,9 +112,7 @@ def run():
 		print("   ERROR:", type(e).__name__, e)
 
 	print("\n" + "=" * 62)
-	print("If [3] or [4] show an EMPTY module list, the server is running")
-	print("old code - re-pull the repo (git reset --hard upstream/main).")
-	print("Then run: bench --site <your-site> execute driving_school.install_diag.resync")
+	print("Paste this output in the chat so the root cause can be fixed.")
 	print("=" * 62)
 
 
@@ -120,6 +135,9 @@ def resync():
 		apps = frappe.local.app_modules or {}
 		print("module map after rebuild:", apps.get("driving_school"))
 		print("modules.txt on disk     :", frappe.get_module_list("driving_school"))
+
+		mod = frappe.get_module("driving_school.driving_school")
+		print("module file             :", getattr(mod, "__file__", "?"))
 
 		if not apps.get("driving_school"):
 			print(
