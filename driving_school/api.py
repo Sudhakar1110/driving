@@ -492,6 +492,16 @@ def submit_mock_test(category, answers):
 		"score_percent": attempt.score_percent,
 		"correct_answers": attempt.correct_answers,
 		"total_questions": attempt.total_questions,
+		"pass_percentage": attempt.pass_percentage,
+		"answers": [
+			{
+				"question": a.question_text,
+				"selected_answer": a.selected_answer,
+				"correct_answer": a.correct_answer,
+				"is_correct": a.is_correct,
+			}
+			for a in attempt.answers
+		],
 	}
 
 

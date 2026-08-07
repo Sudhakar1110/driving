@@ -78,27 +78,75 @@ frappe.ready(() => {
 			return;
 		}
 
+		$("#submit-btn").prop("disabled", true).text(__("Submitting..."));
+
 		frappe.call({
 			method: "driving_school.api.submit_mock_test",
 			args: { category: $("#category").val(), answers: answers },
 			callback: (r) => {
-				if (r.exc) {
+				$("#submit-btn").prop("disabled", false).text(__("Submit Test"));
+				if (r.exc || !r.message) {
 					showMsg(__("Submission failed. Please try again."), "danger");
 					return;
 				}
-				const res = r.message;
-				$("#quiz-wrap").hide();
-				$("#result-card").show();
-				$("#res-score").text(res.score_percent + "%");
-				$("#res-detail").text(
-					__("You answered") + " " + res.correct_answers + " / " + res.total_questions + " " + __("correctly")
-				);
-				$("#res-badge")
-					.text(res.result)
-					.attr("class", "badge badge-" + (res.result === "Pass" ? "success" : "danger"));
+				renderResults(r.message);
 			},
 		});
 	});
+
+	function renderResults(res) {
+		const passed = String(res.result || "").toLowerCase().indexOf("pass") !== -1;
+
+		$("#quiz-wrap").hide();
+		$("#result-card").show();
+
+		$("#res-score").text(res.score_percent + "%");
+		$("#res-verdict")
+			.removeClass("text-success text-danger")
+			.addClass(passed ? "text-success" : "text-danger")
+			.html(passed ? "🎉 " + __("Qualified - You passed the test!") : __("Not Qualified - Better luck next time"));
+		$("#res-detail").text(
+			__("You answered") + " " + res.correct_answers + " / " + res.total_questions + " " + __("correctly")
+		);
+		$("#res-passmark").text(__("Pass mark") + ": " + (res.pass_percentage || 60) + "%");
+
+		const list = res.answers || [];
+		let html = "";
+		if (list.length) {
+			html =
+				'<div class="card ds-card text-left mt-4"><div class="card-header bg-white"><strong>' +
+				__("Answer Review") +
+				"</strong></div><ul class='list-group list-group-flush'>";
+			list.forEach((a, i) => {
+				const ok = a.is_correct == 1 || a.is_correct === true;
+				html +=
+					"<li class='list-group-item'>" +
+					"<span class='mr-2'>" +
+					(ok ? "✅" : "❌") +
+					"</span><strong>" +
+					(i + 1) +
+					".</strong> " +
+					(a.question || "") +
+					"<br><span class='ml-4 text-muted'>" +
+					__("Your answer") +
+					": " +
+					(a.selected_answer || "—") +
+					"</span>";
+				if (!ok) {
+					html +=
+						"<br><span class='ml-4 text-danger'>" +
+						__("Correct answer") +
+						": " +
+						(a.correct_answer || "—") +
+						"</span>";
+				}
+				html += "</li>";
+			});
+			html += "</ul></div>";
+		}
+		$("#result-review").html(html);
+		$("html, body").animate({ scrollTop: 0 }, 300);
+	}
 
 	function showMsg(msg, type) {
 		const types = { danger: "alert-danger", success: "alert-success", warning: "alert-warning", info: "alert-info" };

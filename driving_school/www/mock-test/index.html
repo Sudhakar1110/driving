@@ -12,7 +12,7 @@
 		</div>
 	{% else %}
 		<h4 class="mb-1">{{ _("Mock Theory Test") }}</h4>
-		<p class="text-muted">{{ _("Answer 10 random questions. You need 60% to pass.") }}</p>
+		<p class="text-muted">{{ _("Answer the random questions. You need 60% to pass.") }}</p>
 		<div id="ds-msg"></div>
 
 		<div class="card ds-card mb-4" id="setup-card">
@@ -42,11 +42,15 @@
 
 		<div class="card ds-card text-center" id="result-card" style="display:none">
 			<div class="card-body py-5">
-				<h2 class="mb-1"><span class="badge badge-secondary" id="res-badge">—</span></h2>
-				<h1 class="display-4" id="res-score">—</h1>
+				<h1 class="display-4 mb-1" id="res-score">—</h1>
+				<h3 class="mb-2" id="res-verdict">—</h3>
 				<p class="text-muted" id="res-detail">—</p>
-				<a class="btn btn-outline-primary" href="/mock-test">{{ _("Take Another Test") }}</a>
-				<a class="btn btn-outline-secondary" href="/my-progress">{{ _("View My Progress") }}</a>
+				<p class="text-muted mb-0" id="res-passmark">—</p>
+				<div id="result-review"></div>
+				<div class="mt-4">
+					<a class="btn btn-outline-primary" href="/mock-test">{{ _("Take Another Test") }}</a>
+					<a class="btn btn-outline-secondary" href="/my-progress">{{ _("View My Progress") }}</a>
+				</div>
 			</div>
 		</div>
 	{% endif %}
