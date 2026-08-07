@@ -1,0 +1,312 @@
+{
+	"charts": [],
+	"content": "[{\"id\":\"ds-h1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Driving School</b></span>\",\"col\":12}},{\"id\":\"ds-sp1\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ds-c1\",\"type\":\"card\",\"data\":{\"card_name\":\"Learners\",\"col\":4}},{\"id\":\"ds-c2\",\"type\":\"card\",\"data\":{\"card_name\":\"Instructors & Vehicles\",\"col\":4}},{\"id\":\"ds-c3\",\"type\":\"card\",\"data\":{\"card_name\":\"Classes & Tests\",\"col\":4}},{\"id\":\"ds-c4\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}},{\"id\":\"ds-c5\",\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}}]",
+	"creation": "2024-01-01 00:00:00.000000",
+	"custom_blocks": [],
+	"docstatus": 0,
+	"doctype": "Workspace",
+	"for_user": "",
+	"hide_custom": 0,
+	"icon": "navigation",
+	"idx": 0,
+	"indicator_color": "",
+	"is_hidden": 0,
+	"label": "Driving School",
+	"links": [
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Learners",
+			"link_count": 0,
+			"onboard": 0,
+			"type": "Card Break"
+		},
+		{
+			"dependencies": "",
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Learner",
+			"link_count": 0,
+			"link_to": "Learner",
+			"link_type": "DocType",
+			"onboard": 1,
+			"type": "Link"
+		},
+		{
+			"dependencies": "",
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Learner Package",
+			"link_count": 0,
+			"link_to": "Learner Package",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"dependencies": "",
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Enquiry",
+			"link_count": 0,
+			"link_to": "Enquiry",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"dependencies": "",
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Learner Payment",
+			"link_count": 0,
+			"link_to": "Learner Payment",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"dependencies": "",
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Learner Feedback",
+			"link_count": 0,
+			"link_to": "Learner Feedback",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Instructors & Vehicles",
+			"link_count": 0,
+			"onboard": 0,
+			"type": "Card Break"
+		},
+		{
+			"dependencies": "",
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Driving Instructor",
+			"link_count": 0,
+			"link_to": "Driving Instructor",
+			"link_type": "DocType",
+			"onboard": 1,
+			"type": "Link"
+		},
+		{
+			"dependencies": "",
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Instructor Leave",
+			"link_count": 0,
+			"link_to": "Instructor Leave",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"dependencies": "",
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Driving Vehicle",
+			"link_count": 0,
+			"link_to": "Driving Vehicle",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"dependencies": "",
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Driving School Branch",
+			"link_count": 0,
+			"link_to": "Driving School Branch",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Classes & Tests",
+			"link_count": 0,
+			"onboard": 0,
+			"type": "Card Break"
+		},
+		{
+			"dependencies": "",
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Lesson Booking",
+			"link_count": 0,
+			"link_to": "Lesson Booking",
+			"link_type": "DocType",
+			"onboard": 1,
+			"type": "Link"
+		},
+		{
+			"dependencies": "",
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Theory Class",
+			"link_count": 0,
+			"link_to": "Theory Class",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"dependencies": "",
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Theory Class Attendance",
+			"link_count": 0,
+			"link_to": "Theory Class Attendance",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"dependencies": "",
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Mock Test Question",
+			"link_count": 0,
+			"link_to": "Mock Test Question",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"dependencies": "",
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Mock Test Attempt",
+			"link_count": 0,
+			"link_to": "Mock Test Attempt",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"dependencies": "",
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Driving Test",
+			"link_count": 0,
+			"link_to": "Driving Test",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Reports",
+			"link_count": 0,
+			"onboard": 0,
+			"type": "Card Break"
+		},
+		{
+			"dependencies": "",
+			"hidden": 0,
+			"is_query_report": 1,
+			"label": "Revenue Report",
+			"link_count": 0,
+			"link_to": "Revenue Report",
+			"link_type": "Report",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"dependencies": "",
+			"hidden": 0,
+			"is_query_report": 1,
+			"label": "Outstanding Receivables",
+			"link_count": 0,
+			"link_to": "Outstanding Receivables",
+			"link_type": "Report",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"dependencies": "",
+			"hidden": 0,
+			"is_query_report": 1,
+			"label": "Instructor Performance",
+			"link_count": 0,
+			"link_to": "Instructor Performance",
+			"link_type": "Report",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"dependencies": "",
+			"hidden": 0,
+			"is_query_report": 1,
+			"label": "Vehicle Utilization",
+			"link_count": 0,
+			"link_to": "Vehicle Utilization",
+			"link_type": "Report",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Settings",
+			"link_count": 0,
+			"onboard": 0,
+			"type": "Card Break"
+		},
+		{
+			"dependencies": "",
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "Driving School Settings",
+			"link_count": 0,
+			"link_to": "Driving School Settings",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		}
+	],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "Driving School",
+	"name": "Driving School",
+	"number_cards": [],
+	"owner": "Administrator",
+	"parent_page": "",
+	"public": 1,
+	"quick_lists": [],
+	"restrict_to_domain": "",
+	"roles": [],
+	"sequence_id": 1.0,
+	"shortcuts": [
+		{
+			"label": "Learner",
+			"link_to": "Learner",
+			"type": "DocType"
+		},
+		{
+			"label": "Lesson Booking",
+			"link_to": "Lesson Booking",
+			"type": "DocType"
+		},
+		{
+			"label": "Driving Instructor",
+			"link_to": "Driving Instructor",
+			"type": "DocType"
+		},
+		{
+			"label": "Revenue Report",
+			"link_to": "Revenue Report",
+			"type": "Report"
+		}
+	],
+	"title": "Driving School"
+}

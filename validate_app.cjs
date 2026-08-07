@@ -66,6 +66,7 @@ for (const required of [
 	`${APP}/public/js`,
 	`${APP}/www`,
 	`${APP}/www/__init__.py`,
+	`${APP}/${APP}/${APP}/workspace/${APP}/${APP}.json`,
 ]) {
 	if (!fs.existsSync(required)) {
 		errors.push(`Canonical app layout: missing "${required}" in app package`);
@@ -193,9 +194,11 @@ for (const [name, { data, file }] of Object.entries(doctypes)) {
 
 // ---------------------------------------------------------------- reports
 const reportFiles = jsonFiles.filter((f) => f.includes("/report/"));
+const reportNames = new Set();
 for (const file of reportFiles) {
 	const data = readJson(file);
 	if (!data || data.doctype !== "Report") continue;
+	if (data.name) reportNames.add(data.name);
 	if (data.is_standard !== "Yes") {
 		errors.push(`${file}: is_standard must be "Yes"`);
 	}
@@ -211,6 +214,26 @@ for (const file of reportFiles) {
 	}
 	if (!fs.existsSync(`${folder}/${path.basename(file, ".json")}.js`)) {
 		errors.push(`${file}: missing report js file`);
+	}
+}
+
+// ---------------------------------------------------------------- workspace
+const workspaceFiles = jsonFiles.filter((f) => f.includes("/workspace/"));
+for (const file of workspaceFiles) {
+	const data = readJson(file);
+	if (!data || data.doctype !== "Workspace") continue;
+	if (data.public !== 1) {
+		errors.push(`${file}: workspace must be public (public: 1)`);
+	}
+	for (const link of data.links || []) {
+		if (link.type !== "Link" || !link.link_to) continue;
+		if (link.link_type === "Report") {
+			if (!reportNames.has(link.link_to)) {
+				errors.push(`${file}: workspace link to unknown report "${link.link_to}"`);
+			}
+		} else if (!doctypes[link.link_to] && !CORE_DOCTYPES.has(link.link_to)) {
+			errors.push(`${file}: workspace link to unknown doctype "${link.link_to}"`);
+		}
 	}
 }
 
