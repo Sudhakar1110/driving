@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import datetime
+
 import frappe
 from frappe import _
 
@@ -48,3 +50,25 @@ def get_admin_email():
 def erpnext_installed():
 	"""True when ERPNext (Accounts) is available - used for optional integrations."""
 	return bool(frappe.db.exists("Module Def", "ERPNext"))
+
+
+def to_time(value):
+	"""Convert a Frappe Time value to datetime.time.
+
+	Frappe does not expose ``frappe.utils.to_time``, so this local helper is used.
+	Accepts a ``datetime.time``, a ``datetime.timedelta`` (as returned by the
+	MariaDB driver for TIME columns) or a "HH:MM[:SS]" string.
+	"""
+	if isinstance(value, datetime.time):
+		return value
+	if isinstance(value, datetime.timedelta):
+		seconds = int(value.total_seconds()) % 86400
+		return (datetime.datetime(2000, 1, 1) + datetime.timedelta(seconds=seconds)).time()
+	if isinstance(value, str):
+		value = value.strip()
+		for fmt in ("%H:%M:%S", "%H:%M"):
+			try:
+				return datetime.datetime.strptime(value, fmt).time()
+			except ValueError:
+				continue
+	return value

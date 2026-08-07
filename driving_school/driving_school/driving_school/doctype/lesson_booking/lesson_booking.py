@@ -5,7 +5,9 @@ import datetime
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint, flt, getdate, now_datetime, to_time, today
+from frappe.utils import cint, flt, getdate, now_datetime, today
+
+from driving_school.utils import to_time
 
 
 class LessonBooking(Document):

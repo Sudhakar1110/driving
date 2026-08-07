@@ -4,9 +4,9 @@ import datetime
 
 import frappe
 from frappe import _
-from frappe.utils import cint, getdate, nowdate, to_time
+from frappe.utils import cint, getdate, nowdate
 
-from driving_school.utils import get_learner_for_user
+from driving_school.utils import get_learner_for_user, to_time
 
 ACTIVE_BOOKING_STATUSES = ["Requested", "Confirmed", "On Waitlist"]
 

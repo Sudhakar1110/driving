@@ -4,9 +4,9 @@ import datetime
 
 import frappe
 from frappe import _
-from frappe.utils import add_days, cint, getdate, now_datetime, nowdate, to_time
+from frappe.utils import add_days, cint, getdate, now_datetime, nowdate
 
-from driving_school.utils import get_admin_email, get_settings, send_email
+from driving_school.utils import get_admin_email, get_settings, send_email, to_time
 
 
 def daily():
