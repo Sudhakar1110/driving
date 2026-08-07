@@ -66,7 +66,7 @@ for (const required of [
 	`${APP}/public/js`,
 	`${APP}/www`,
 	`${APP}/www/__init__.py`,
-	`${APP}/${APP}/${APP}/workspace/${APP}/${APP}.json`,
+	`${APP}/${APP}/workspace/${APP}/${APP}.json`,
 ]) {
 	if (!fs.existsSync(required)) {
 		errors.push(`Canonical app layout: missing "${required}" in app package`);
