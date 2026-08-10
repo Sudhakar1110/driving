@@ -48,7 +48,7 @@ frappe.ready(() => {
 		} else {
 			lessons.forEach((b) => {
 				$list.append(
-					'<li class="list-group-item d-flex justify-content-between align-items-center">' +
+					'<li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">' +
 						'<span><strong>' +
 						b.lesson_date +
 						"</strong> at " +

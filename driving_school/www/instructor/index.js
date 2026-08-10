@@ -39,7 +39,7 @@ frappe.ready(() => {
 		leave.forEach((l) => {
 			const badge = l.status === "Approved" ? "badge-success" : l.status === "Rejected" ? "badge-danger" : "badge-warning";
 			$leave.append(
-				'<li class="list-group-item d-flex justify-content-between align-items-center">' +
+				'<li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">' +
 					"<span><strong>" + l.from_date + "</strong> → " + l.to_date +
 					(l.reason ? '<div class="text-muted small">' + l.reason + "</div>" : "") +
 					'</span><span class="badge ' + badge + '">' + l.status + "</span></li>"
@@ -59,7 +59,7 @@ frappe.ready(() => {
 		}
 		items.forEach((b) => {
 			const $li = $(
-				'<li class="list-group-item"><div class="d-flex justify-content-between align-items-center">' +
+				'<li class="list-group-item"><div class="d-flex justify-content-between align-items-center flex-wrap">' +
 					"<div><strong>" + b.start_time + "</strong>" +
 					(b.end_time ? " - " + b.end_time : "") +
 					(actionable ? "" : '<div class="text-muted small">' + b.lesson_date + "</div>") +

@@ -44,7 +44,7 @@ frappe.ready(() => {
 
 			const $li = $('<li class="list-group-item"></li>');
 			$li.append(
-				'<div class="d-flex justify-content-between align-items-center">' +
+				'<div class="d-flex justify-content-between align-items-center flex-wrap">' +
 					'<div><strong>' +
 					b.lesson_date +
 					"</strong> at " +

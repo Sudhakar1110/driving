@@ -1,29 +1,52 @@
 {#
 	Driving School portal navigation.
 	Expects context variables: portal_page (active page slug) and is_logged_in.
+	On small screens the links collapse behind a hamburger toggle (Bootstrap collapse).
 #}
 <nav class="ds-nav py-2 mb-4">
 	<div class="container d-flex flex-wrap align-items-center justify-content-between">
 		<a class="ds-brand mr-3" href="/portal-home" title="{{ _('Learner Dashboard') }}">
 			<i class="fa fa-car mr-1 text-primary"></i>{{ _("Driving School") }}
 		</a>
-		<div class="ds-nav-links d-flex flex-wrap align-items-center">
-			<a href="/portal-home" class="{{ 'ds-active' if portal_page == 'portal-home' }}">{{ _("Home") }}</a>
-			<a href="/book-lesson" class="{{ 'ds-active' if portal_page == 'book-lesson' }}">{{ _("Book Lesson") }}</a>
-			<a href="/my-lessons" class="{{ 'ds-active' if portal_page == 'my-lessons' }}">{{ _("My Lessons") }}</a>
-			<a href="/my-progress" class="{{ 'ds-active' if portal_page == 'my-progress' }}">{{ _("My Progress") }}</a>
-			<a href="/mock-test" class="{{ 'ds-active' if portal_page == 'mock-test' }}">{{ _("Mock Test") }}</a>
-			<a href="/enquire" class="{{ 'ds-active' if portal_page == 'enquire' }}">{{ _("Enquire") }}</a>
-			{% if is_logged_in %}
-				{% if is_instructor %}
-					<a href="/instructor" class="{{ 'ds-active' if portal_page == 'instructor' }}">{{ _("Instructor") }}</a>
+		<button class="ds-toggler d-lg-none" type="button" data-toggle="collapse" data-target="#dsNavLinks"
+			aria-controls="dsNavLinks" aria-expanded="false" aria-label="{{ _('Toggle navigation') }}">
+			<i class="fa fa-bars"></i>
+		</button>
+		<div class="collapse d-lg-flex" id="dsNavLinks">
+			<div class="ds-nav-links d-flex flex-column flex-lg-row flex-wrap align-items-lg-center">
+				<a href="/portal-home" class="{{ 'ds-active' if portal_page == 'portal-home' }}">{{ _("Home") }}</a>
+				<a href="/book-lesson" class="{{ 'ds-active' if portal_page == 'book-lesson' }}">{{ _("Book Lesson") }}</a>
+				<a href="/my-lessons" class="{{ 'ds-active' if portal_page == 'my-lessons' }}">{{ _("My Lessons") }}</a>
+				<a href="/my-progress" class="{{ 'ds-active' if portal_page == 'my-progress' }}">{{ _("My Progress") }}</a>
+				<a href="/mock-test" class="{{ 'ds-active' if portal_page == 'mock-test' }}">{{ _("Mock Test") }}</a>
+				<a href="/enquire" class="{{ 'ds-active' if portal_page == 'enquire' }}">{{ _("Enquire") }}</a>
+				{% if is_logged_in %}
+					{% if is_instructor %}
+						<a href="/instructor" class="{{ 'ds-active' if portal_page == 'instructor' }}">{{ _("Instructor") }}</a>
+					{% endif %}
+					<a href="/api/method/logout" class="ds-logout ml-2"
+						onclick="if (window.frappe) { event.preventDefault(); frappe.call({ method: 'logout', always: function () { window.location.href = '/login'; } }); }">{{ _("Logout") }}</a>
+				{% else %}
+					<a href="/register" class="{{ 'ds-active' if portal_page == 'register' }}">{{ _("Register") }}</a>
+					<a href="/login" class="ds-login ml-2">{{ _("Log In") }}</a>
 				{% endif %}
-				<a href="/api/method/logout" class="ds-logout ml-2"
-					onclick="if (window.frappe) { event.preventDefault(); frappe.call({ method: 'logout', always: function () { window.location.href = '/login'; } }); }">{{ _("Logout") }}</a>
-			{% else %}
-				<a href="/register" class="{{ 'ds-active' if portal_page == 'register' }}">{{ _("Register") }}</a>
-				<a href="/login" class="ds-login ml-2">{{ _("Log In") }}</a>
-			{% endif %}
+			</div>
 		</div>
 	</div>
 </nav>
+<script>
+	// Fallback hamburger toggle for themes that don't load Bootstrap's collapse JS.
+	// Runs on DOMContentLoaded so jQuery (loaded at the end of <body>) is available.
+	document.addEventListener("DOMContentLoaded", function () {
+		if (window.jQuery && window.jQuery.fn.collapse) return; // Bootstrap handles it
+		document.addEventListener("click", function (event) {
+			var toggle = event.target.closest("[data-toggle='collapse']");
+			if (!toggle) return;
+			var target = document.querySelector(toggle.getAttribute("data-target"));
+			if (target) {
+				var open = target.classList.toggle("show");
+				toggle.setAttribute("aria-expanded", open ? "true" : "false");
+			}
+		});
+	});
+</script>
