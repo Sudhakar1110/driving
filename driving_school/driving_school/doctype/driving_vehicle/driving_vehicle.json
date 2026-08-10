@@ -19,6 +19,7 @@
   "section_service",
   "last_service_odometer",
   "service_interval_km",
+  "current_odometer",
   "next_service_due_km",
   "column_break_service",
   "daily_cost",
@@ -101,6 +102,11 @@
    "fieldname": "service_interval_km",
    "fieldtype": "Int",
    "label": "Service Interval (km)"
+  },
+  {
+   "fieldname": "current_odometer",
+   "fieldtype": "Int",
+   "label": "Current Odometer (km)"
   },
   {
    "fieldname": "next_service_due_km",

@@ -108,8 +108,13 @@ def get_learner_summary():
 
 @frappe.whitelist()
 def get_resources():
-	"""Active instructors and vehicles for the booking form."""
-	_get_learner()
+	"""Active instructors and vehicles for the booking form.
+
+	Instructors that declare vehicle categories are shown only when the
+	learner's category matches; unrestricted instructors are always shown.
+	"""
+	learner = _get_learner()
+	learner_category = frappe.db.get_value("Learner", learner, "category")
 
 	instructors = frappe.get_all(
 		"Driving Instructor",
@@ -117,6 +122,19 @@ def get_resources():
 		fields=["name", "instructor_name", "photo"],
 		order_by="instructor_name asc",
 	)
+
+	if learner_category:
+		qualified = []
+		for instructor in instructors:
+			categories = frappe.get_all(
+				"Instructor Vehicle Category",
+				filters={"parent": instructor.name},
+				pluck="category",
+			)
+			if not categories or learner_category in categories:
+				qualified.append(instructor)
+		instructors = qualified
+
 	vehicles = frappe.get_all(
 		"Driving Vehicle",
 		filters={"is_active": 1, "status": "Available"},
@@ -153,6 +171,22 @@ def get_available_slots(lesson_date, instructor=None, vehicle=None):
 		if b.vehicle:
 			busy["vehicle"].add((b.vehicle, key))
 
+	# an instructor on approved leave is unavailable for the whole day
+	instructor_on_leave = False
+	if instructor:
+		instructor_on_leave = bool(
+			frappe.get_all(
+				"Instructor Leave",
+				filters={
+					"instructor": instructor,
+					"status": "Approved",
+					"from_date": ["<=", lesson_date],
+					"to_date": [">=", lesson_date],
+				},
+				limit_page_length=1,
+			)
+		)
+
 	slots = []
 	cur = datetime.datetime.combine(getdate(lesson_date), start_t)
 	end_dt = datetime.datetime.combine(getdate(lesson_date), end_t)
@@ -166,6 +200,8 @@ def get_available_slots(lesson_date, instructor=None, vehicle=None):
 		if vehicle and (vehicle, key) in busy["vehicle"]:
 			available = False
 		if (learner, key) in busy["learner"]:
+			available = False
+		if instructor_on_leave:
 			available = False
 		if getdate(lesson_date) == nowdate() and cur <= now:
 			available = False
@@ -429,6 +465,13 @@ def get_my_progress():
 		limit_page_length=50,
 	)
 
+	documents = frappe.get_all(
+		"Learner Document",
+		filters={"parent": learner},
+		fields=["doc_type", "doc_number", "expiry_date", "is_verified"],
+		order_by="idx asc",
+	)
+
 	return {
 		"learner": {
 			"name": learner,
@@ -441,6 +484,7 @@ def get_my_progress():
 		"mock_attempts": mock_attempts,
 		"driving_tests": driving_tests,
 		"attendance": attendance,
+		"documents": documents,
 	}
 
 

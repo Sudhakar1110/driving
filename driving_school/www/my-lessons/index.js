@@ -82,6 +82,18 @@ frappe.ready(() => {
 				);
 				$li.append($actions);
 			}
+
+			if (!actionable && b.status === "Completed") {
+				$li.append(
+					'<button class="btn btn-sm btn-outline-success mt-2" data-action="feedback" data-name="' +
+						b.name +
+						'" data-instructor="' +
+						(b.instructor || "") +
+						'">' +
+						__("Give Feedback") +
+						"</button>"
+				);
+			}
 			$list.append($li);
 		});
 	}
@@ -165,6 +177,67 @@ frappe.ready(() => {
 				}
 				showMsg(__("Lesson rescheduled."), "success");
 				load();
+			},
+		});
+	});
+
+	$(document).on("click", '[data-action="feedback"]', (e) => {
+		const $btn = $(e.currentTarget);
+		const $li = $btn.closest("li");
+		if ($li.find(".ds-feedback").length) {
+			$li.find(".ds-feedback").remove();
+			return;
+		}
+
+		const ratingOptions = "12345"
+			.split("")
+			.map((n) => '<option value="' + n + '"' + (n === "5" ? " selected" : "") + ">" + n + "</option>")
+			.join("");
+
+		const $form = $(
+			'<div class="ds-feedback card card-body bg-light mt-2">' +
+				'<div class="form-group mb-2"><label>' +
+				__("Rating") +
+				'</label><select class="form-control form-control-sm f-rating">' +
+				ratingOptions +
+				"</select></div>" +
+				'<div class="form-group mb-2"><label>' +
+				__("Comments") +
+				'</label><textarea class="form-control form-control-sm f-comments" rows="2"></textarea></div>' +
+				'<button class="btn btn-sm btn-success f-save" data-name="' +
+				$btn.data("name") +
+				'" data-instructor="' +
+				($btn.data("instructor") || "") +
+				'">' +
+				__("Submit Feedback") +
+				"</button></div>"
+		);
+		$li.append($form);
+	});
+
+	$(document).on("click", ".f-save", (e) => {
+		const $btn = $(e.currentTarget);
+		const $form = $btn.closest(".ds-feedback");
+		const rating = $form.find(".f-rating").val();
+		const comments = $form.find(".f-comments").val();
+		frappe.call({
+			method: "driving_school.api.submit_feedback",
+			args: {
+				lesson: $btn.data("name"),
+				instructor: $btn.data("instructor"),
+				rating: rating,
+				comments: comments,
+			},
+			callback: (r) => {
+				if (r.exc) {
+					showMsg(
+						r._server_messages ? r._server_messages.join("<br>") : __("Could not submit feedback."),
+						"danger"
+					);
+					return;
+				}
+				showMsg(__("Thank you for your feedback!"), "success");
+				$form.empty().append('<span class="text-success">' + __("Feedback submitted.") + "</span>");
 			},
 		});
 	});

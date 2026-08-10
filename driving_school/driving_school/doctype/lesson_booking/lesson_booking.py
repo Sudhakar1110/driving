@@ -5,9 +5,12 @@ import datetime
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint, flt, getdate, now_datetime, today
+from frappe.utils import add_days, cint, flt, get_first_day_of_week, getdate, now_datetime, today
 
 from driving_school.utils import to_time
+
+
+ACTIVE_BOOKING_STATUSES = ["Requested", "Confirmed", "On Waitlist"]
 
 
 class LessonBooking(Document):
@@ -17,6 +20,10 @@ class LessonBooking(Document):
 		self.validate_conflicts()
 		self.validate_learner_status()
 		self.validate_package()
+		self.validate_schedule_rules()
+		self.validate_instructor_leave()
+		self.validate_vehicle_status()
+		self.validate_instructor_category()
 		self.validate_status_transition()
 		self.apply_cancellation_fee()
 
@@ -45,7 +52,6 @@ class LessonBooking(Document):
 		if not (self.learner and self.instructor and self.vehicle and self.lesson_date and self.start_time):
 			return
 
-		active_statuses = ["Requested", "Confirmed", "On Waitlist"]
 		for field in ("learner", "instructor", "vehicle"):
 			existing = frappe.db.exists(
 				"Lesson Booking",
@@ -53,7 +59,7 @@ class LessonBooking(Document):
 					field: self.get(field),
 					"lesson_date": self.lesson_date,
 					"start_time": self.start_time,
-					"status": ["in", active_statuses],
+					"status": ["in", ACTIVE_BOOKING_STATUSES],
 					"name": ["!=", self.name or ""],
 				},
 			)
@@ -89,6 +95,120 @@ class LessonBooking(Document):
 		else:
 			if not self.lesson_fee:
 				frappe.throw(_("Please select a Learner Package or enter a Lesson Fee."))
+
+	def validate_schedule_rules(self):
+		"""Enforce settings: max lessons per week and min gap between lessons.
+
+		Only checked on create or when the schedule actually changes, so editing
+		trivial fields on pre-existing bookings is never blocked retroactively.
+		"""
+		if self.status not in ACTIVE_BOOKING_STATUSES or not self.lesson_date:
+			return
+		if not self.is_new() and (
+			self.lesson_date == self.get_db_value("lesson_date")
+			and self.status == self.get_db_value("status")
+		):
+			return
+		settings = frappe.get_single("Driving School Settings")
+
+		max_per_week = cint(settings.max_lessons_per_week)
+		if max_per_week:
+			week_start = get_first_day_of_week(self.lesson_date)
+			booked = frappe.db.count(
+				"Lesson Booking",
+				{
+					"learner": self.learner,
+					"lesson_date": ["between", [week_start, add_days(week_start, 6)]],
+					"status": ["in", ACTIVE_BOOKING_STATUSES],
+					"name": ["!=", self.name or ""],
+				},
+			)
+			if booked >= max_per_week:
+				frappe.throw(_("You can book a maximum of {0} lessons per week.").format(max_per_week))
+
+		min_gap = cint(settings.min_gap_days_between_lessons)
+		if min_gap:
+			nearby = frappe.db.get_value(
+				"Lesson Booking",
+				{
+					"learner": self.learner,
+					"lesson_date": [
+						"between",
+						[add_days(self.lesson_date, -min_gap), add_days(self.lesson_date, min_gap)],
+					],
+					"status": ["in", ACTIVE_BOOKING_STATUSES],
+					"name": ["!=", self.name or ""],
+				},
+				"name",
+			)
+			if nearby:
+				frappe.throw(
+					_("Lessons must be at least {0} day(s) apart. Booking {1} is too close to this date.").format(
+						min_gap, nearby
+					)
+				)
+
+	def validate_instructor_leave(self):
+		"""Block booking with an instructor who is on approved leave."""
+		if self.status not in ACTIVE_BOOKING_STATUSES or not (self.instructor and self.lesson_date):
+			return
+		if not self.is_new() and (
+			self.instructor == self.get_db_value("instructor")
+			and self.lesson_date == self.get_db_value("lesson_date")
+		):
+			return
+		leave = frappe.db.get_value(
+			"Instructor Leave",
+			{
+				"instructor": self.instructor,
+				"status": "Approved",
+				"from_date": ["<=", self.lesson_date],
+				"to_date": [">=", self.lesson_date],
+			},
+			"name",
+		)
+		if leave:
+			frappe.throw(
+				_("Instructor {0} is on approved leave on {1} (Leave {2}).").format(
+					self.instructor, self.lesson_date, leave
+				)
+			)
+
+	def validate_vehicle_status(self):
+		"""Only available, active vehicles can be booked (portal and desk)."""
+		if self.status not in ACTIVE_BOOKING_STATUSES or not self.vehicle:
+			return
+		if not self.is_new() and self.vehicle == self.get_db_value("vehicle"):
+			return
+		vehicle = frappe.get_cached_doc("Driving Vehicle", self.vehicle)
+		if not vehicle.is_active:
+			frappe.throw(_("Vehicle {0} is inactive and cannot be booked.").format(self.vehicle))
+		if vehicle.status != "Available":
+			frappe.throw(
+				_("Vehicle {0} is {1} and cannot be booked.").format(self.vehicle, vehicle.status)
+			)
+
+	def validate_instructor_category(self):
+		"""Instructors with declared vehicle categories may only teach those categories."""
+		if self.status not in ACTIVE_BOOKING_STATUSES or not (self.instructor and self.learner):
+			return
+		if not self.is_new() and self.instructor == self.get_db_value("instructor"):
+			return
+		categories = frappe.get_all(
+			"Instructor Vehicle Category",
+			filters={"parent": self.instructor},
+			pluck="category",
+		)
+		if not categories:
+			return  # instructor is not restricted
+		learner = frappe.get_cached_doc("Learner", self.learner)
+		category = self.category or learner.category
+		if category and category not in categories:
+			frappe.throw(
+				_("Instructor {0} is not qualified to teach {1} lessons.").format(
+					self.instructor, category
+				)
+			)
 
 	def validate_status_transition(self):
 		if self.is_new():

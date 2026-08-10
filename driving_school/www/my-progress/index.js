@@ -124,6 +124,26 @@ frappe.ready(() => {
 		if (!(data.attendance || []).length) {
 			$att.append('<tr><td colspan="3" class="text-center text-muted">' + __("No theory classes attended yet.") + "</td></tr>");
 		}
+
+		const $docs = $("#documents-table").empty();
+		(data.documents || []).forEach((d) => {
+			$docs.append(
+				"<tr><td>" +
+					(d.doc_type || "—") +
+					"</td><td>" +
+					(d.doc_number || "—") +
+					"</td><td>" +
+					(d.expiry_date || "—") +
+					'</td><td><span class="badge badge-' +
+					(d.is_verified ? "success" : "warning") +
+					'">' +
+					(d.is_verified ? __("Verified") : __("Pending")) +
+					"</span></td></tr>"
+			);
+		});
+		if (!(data.documents || []).length) {
+			$docs.append('<tr><td colspan="4" class="text-center text-muted">' + __("No documents uploaded yet.") + "</td></tr>");
+		}
 	}
 
 	function fmtMoney(v) {

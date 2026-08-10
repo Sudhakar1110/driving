@@ -166,30 +166,53 @@ def alert_expiring_documents():
 
 
 def alert_expiring_vehicles():
-	"""Alert admin about vehicle insurance / permit / fitness expiry in next 30 days."""
+	"""Alert admin about vehicle insurance / permit / fitness expiry in the next
+	30 days and vehicles whose service is due (odometer past next_service_due_km)."""
 	expiry = add_days(nowdate(), 30)
 	vehicles = frappe.get_all(
 		"Driving Vehicle",
-		filters=[
-			["insurance_expiry", "between", [nowdate(), expiry]],
-			["is_active", "=", 1],
+		filters={"is_active": 1},
+		fields=[
+			"name",
+			"vehicle_number",
+			"insurance_expiry",
+			"permit_expiry",
+			"fitness_expiry",
+			"current_odometer",
+			"next_service_due_km",
 		],
-		fields=["name", "vehicle_number", "insurance_expiry"],
 		limit_page_length=100,
 	)
-	if not vehicles:
+
+	rows = []
+	for v in vehicles:
+		issues = []
+		for field, label in (
+			("insurance_expiry", "insurance"),
+			("permit_expiry", "permit"),
+			("fitness_expiry", "fitness"),
+		):
+			value = v.get(field)
+			if value and getdate(value) <= getdate(expiry):
+				issues.append("{} expires on {}".format(label, value))
+		if (
+			v.get("current_odometer") is not None
+			and v.get("next_service_due_km")
+			and cint(v.current_odometer) >= cint(v.next_service_due_km)
+		):
+			issues.append(
+				"service due (odometer {} of {})".format(v.current_odometer, v.next_service_due_km)
+			)
+		if issues:
+			rows.append("<li>{0} ({1}) - {2}</li>".format(v.vehicle_number, v.name, "; ".join(issues)))
+
+	if not rows:
 		return
 
-	rows = "".join(
-		"<li>{0} ({1}) - insurance {2}</li>".format(
-			v.vehicle_number, v.name, v.insurance_expiry
-		)
-		for v in vehicles
-	)
 	send_email(
 		get_admin_email(),
-		_("Vehicle insurance expiring soon"),
-		"<p>The following vehicles have insurance expiring within 30 days:</p><ul>{0}</ul>".format(rows),
+		_("Vehicle documents / service expiring soon"),
+		"<p>The following vehicles need attention in the next 30 days:</p><ul>{0}</ul>".format("".join(rows)),
 	)
 
 
