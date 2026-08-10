@@ -3,6 +3,7 @@
 {% block title %}{{ _("Learner Dashboard") }}{% endblock %}
 
 {% block page_content %}
+{% include "templates/includes/portal_nav.html" %}
 <div class="container my-4">
 	{% if not learner %}
 		<div class="text-center py-5">
@@ -15,15 +16,36 @@
 			</div>
 		</div>
 	{% else %}
-		<h4 class="mb-1">Hello, <span id="l-name">{{ learner_name }}</span> 👋</h4>
-		<p class="text-muted">Welcome to your driving school dashboard.</p>
+		<div class="ds-hero p-4 p-md-5 mb-4">
+			<div class="row align-items-center">
+				<div class="col-md-8">
+					<h3 class="mb-1">Hello, <span id="l-name">{{ learner_name }}</span> 👋</h3>
+					<p class="opacity-75 mb-2">Welcome to your driving school dashboard.</p>
+					<div>
+						<span class="badge badge-light mr-1" id="l-status">—</span>
+						<span class="badge badge-light mr-1" id="l-stage">—</span>
+						<span class="badge badge-light" id="l-category">{{ _("Category: ") }}<span id="l-cat-text">—</span></span>
+					</div>
+				</div>
+				<div class="col-md-4 mt-3 mt-md-0">
+					<div class="d-flex flex-column flex-md-row flex-md-wrap justify-content-md-end">
+						<a class="btn btn-light mr-md-2 mb-2 mb-md-0" href="/book-lesson">
+							<i class="fa fa-calendar-check-o mr-1"></i>{{ _("Book a Lesson") }}
+						</a>
+						<a class="btn btn-outline-light" href="/my-progress">
+							<i class="fa fa-line-chart mr-1"></i>{{ _("My Progress") }}
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
 		<div id="ds-msg"></div>
 
 		<div class="row mb-4">
 			<div class="col-6 col-md-3 mb-3">
 				<div class="card ds-card h-100">
 					<div class="card-body">
-						<div class="ds-stat" id="c-completed">—</div>
+						<div class="ds-stat text-success" id="c-completed">—</div>
 						<div class="text-muted small">{{ _("Lessons Completed") }}</div>
 					</div>
 				</div>
@@ -31,7 +53,7 @@
 			<div class="col-6 col-md-3 mb-3">
 				<div class="card ds-card h-100">
 					<div class="card-body">
-						<div class="ds-stat" id="c-noshows">—</div>
+						<div class="ds-stat text-warning" id="c-noshows">—</div>
 						<div class="text-muted small">{{ _("No Shows") }}</div>
 					</div>
 				</div>
@@ -39,16 +61,16 @@
 			<div class="col-6 col-md-3 mb-3">
 				<div class="card ds-card h-100">
 					<div class="card-body">
-						<div class="ds-stat" id="l-stage">—</div>
-						<div class="text-muted small">{{ _("Training Stage") }}</div>
+						<div class="ds-stat text-primary" id="c-upcoming">—</div>
+						<div class="text-muted small">{{ _("Upcoming Lessons") }}</div>
 					</div>
 				</div>
 			</div>
 			<div class="col-6 col-md-3 mb-3">
 				<div class="card ds-card h-100">
 					<div class="card-body">
-						<div class="ds-stat" id="l-status">—</div>
-						<div class="text-muted small">{{ _("Status") }}</div>
+						<div class="ds-stat" id="pkg-balance-hero">—</div>
+						<div class="text-muted small">{{ _("Package Balance") }}</div>
 					</div>
 				</div>
 			</div>
@@ -83,33 +105,50 @@
 			</div>
 		</div>
 
-		<div class="card ds-card">
+		<div class="card ds-card mb-4">
 			<div class="card-header bg-white"><strong>{{ _("Quick Actions") }}</strong></div>
 			<div class="card-body">
 				<div class="row">
 					<div class="col-6 col-md-3 mb-3">
-						<a class="btn btn-primary btn-block py-3" href="/book-lesson">
-							<i class="fa fa-calendar-check-o d-block mb-1 fa-lg"></i>{{ _("Book a Lesson") }}
+						<a class="ds-quick-action" href="/book-lesson">
+							<i class="fa fa-calendar-check-o text-primary"></i>
+							{{ _("Book a Lesson") }}
+							<small class="d-block text-muted">{{ _("Pick a slot with your instructor") }}</small>
 						</a>
 					</div>
 					<div class="col-6 col-md-3 mb-3">
-						<a class="btn btn-outline-primary btn-block py-3" href="/my-lessons">
-							<i class="fa fa-list-alt d-block mb-1 fa-lg"></i>{{ _("My Lessons") }}
+						<a class="ds-quick-action" href="/my-lessons">
+							<i class="fa fa-list-alt text-primary"></i>
+							{{ _("My Lessons") }}
+							<small class="d-block text-muted">{{ _("View or cancel bookings") }}</small>
 						</a>
 					</div>
 					<div class="col-6 col-md-3 mb-3">
-						<a class="btn btn-outline-primary btn-block py-3" href="/my-payments">
-							<i class="fa fa-credit-card d-block mb-1 fa-lg"></i>{{ _("My Payments") }}
+						<a class="ds-quick-action" href="/my-payments">
+							<i class="fa fa-credit-card text-primary"></i>
+							{{ _("My Payments") }}
+							<small class="d-block text-muted">{{ _("Pay your package balance") }}</small>
 						</a>
 					</div>
 					<div class="col-6 col-md-3 mb-3">
-						<a class="btn btn-outline-primary btn-block py-3" href="/my-progress">
-							<i class="fa fa-line-chart d-block mb-1 fa-lg"></i>{{ _("My Progress") }}
+						<a class="ds-quick-action" href="/my-progress">
+							<i class="fa fa-line-chart text-primary"></i>
+							{{ _("My Progress") }}
+							<small class="d-block text-muted">{{ _("Tests, packages & documents") }}</small>
 						</a>
 					</div>
 					<div class="col-6 col-md-3 mb-3">
-						<a class="btn btn-outline-secondary btn-block py-3" href="/mock-test">
-							<i class="fa fa-pencil-square-o d-block mb-1 fa-lg"></i>{{ _("Mock Test") }}
+						<a class="ds-quick-action" href="/mock-test">
+							<i class="fa fa-pencil-square-o text-primary"></i>
+							{{ _("Mock Test") }}
+							<small class="d-block text-muted">{{ _("Practice theory questions") }}</small>
+						</a>
+					</div>
+					<div class="col-6 col-md-3 mb-3">
+						<a class="ds-quick-action" href="/enquire">
+							<i class="fa fa-envelope-o text-primary"></i>
+							{{ _("Contact Us") }}
+							<small class="d-block text-muted">{{ _("Ask us anything") }}</small>
 						</a>
 					</div>
 				</div>

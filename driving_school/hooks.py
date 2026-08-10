@@ -18,6 +18,7 @@ before_uninstall = "driving_school.install.before_uninstall"
 # Assets
 app_include_css = ["/assets/driving_school/css/driving_school.css"]
 app_include_js = ["/assets/driving_school/js/calendar.js"]
+web_include_css = ["/assets/driving_school/css/driving_school.css"]
 
 # Scheduled jobs
 scheduler_events = {

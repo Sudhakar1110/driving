@@ -3,6 +3,7 @@
 {% block title %}{{ _("My Payments") }}{% endblock %}
 
 {% block page_content %}
+{% include "templates/includes/portal_nav.html" %}
 <div class="container my-4" style="max-width: 960px;">
 	{% if not learner %}
 		<div class="text-center py-5">

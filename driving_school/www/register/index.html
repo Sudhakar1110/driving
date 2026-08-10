@@ -3,6 +3,7 @@
 {% block title %}{{ _("Register as a Learner") }}{% endblock %}
 
 {% block page_content %}
+{% include "templates/includes/portal_nav.html" %}
 <div class="container my-4" style="max-width: 720px;">
 	<div class="text-center mb-4">
 		<div class="mb-2"><i class="fa fa-user-plus fa-3x text-primary"></i></div>
@@ -12,64 +13,84 @@
 
 	<div id="ds-msg"></div>
 
-	<div class="card ds-card" id="reg-form">
-		<div class="card-body">
-			<div class="row">
-				<div class="col-md-6 form-group">
-					<label>{{ _("Full Name") }} *</label>
-					<input type="text" class="form-control" id="r-name" placeholder="{{ _('Your full name') }}">
-				</div>
-				<div class="col-md-6 form-group">
-					<label>{{ _("Mobile Number") }} *</label>
-					<input type="text" class="form-control" id="r-mobile" placeholder="{{ _('10-digit mobile number') }}">
-				</div>
+	{% if is_logged_in %}
+		<div class="card ds-card text-center">
+			<div class="card-body py-5">
+				<h1 class="mb-3">👋</h1>
+				<h4 class="mb-2">{{ _("You are already signed in.") }}</h4>
+				<p class="text-muted mb-4">{{ _("Go to your dashboard to book lessons and track your progress.") }}</p>
+				<a class="btn btn-primary" href="/portal-home">{{ _("Open My Dashboard") }}</a>
 			</div>
-			<div class="form-group">
-				<label>{{ _("Email") }} *</label>
-				<input type="email" class="form-control" id="r-email" placeholder="{{ _('you@example.com') }}">
-			</div>
-			<div class="row">
-				<div class="col-md-6 form-group">
-					<label>{{ _("License Category") }}</label>
-					<select class="form-control" id="r-category">
-						<option value="Car" selected>Car</option>
-						<option value="Motorcycle">Motorcycle</option>
-						<option value="Heavy Vehicle">Heavy Vehicle</option>
-						<option value="Bus">Bus</option>
-						<option value="Other">Other</option>
-					</select>
-				</div>
-				<div class="col-md-6 form-group">
-					<label>{{ _("City") }}</label>
-					<input type="text" class="form-control" id="r-city" placeholder="{{ _('Optional') }}">
-				</div>
-			</div>
-			<div class="form-group">
-				<label>{{ _("Address") }}</label>
-				<textarea class="form-control" id="r-address" rows="2" placeholder="{{ _('Optional') }}"></textarea>
-			</div>
-			<div class="row">
-				<div class="col-md-6 form-group">
-					<label>{{ _("Password") }}</label>
-					<input type="password" class="form-control" id="r-password" placeholder="{{ _('Leave blank to use forgot-password later') }}">
-				</div>
-				<div class="col-md-6 form-group">
-					<label>{{ _("Confirm Password") }}</label>
-					<input type="password" class="form-control" id="r-password2">
-				</div>
-			</div>
-			<button class="btn btn-primary btn-block btn-lg" id="r-submit">{{ _("Register") }}</button>
 		</div>
-	</div>
+	{% else %}
+		<form id="reg-form" class="card ds-card" novalidate>
+			<div class="card-body">
+				<div class="row">
+					<div class="col-md-6 form-group">
+						<label for="r-name">{{ _("Full Name") }} *</label>
+						<input type="text" class="form-control" id="r-name" placeholder="{{ _('Your full name') }}" required autocomplete="name">
+					</div>
+					<div class="col-md-6 form-group">
+						<label for="r-mobile">{{ _("Mobile Number") }} *</label>
+						<input type="tel" class="form-control" id="r-mobile" placeholder="{{ _('10-digit mobile number') }}" required autocomplete="tel">
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="r-email">{{ _("Email") }} *</label>
+					<input type="email" class="form-control" id="r-email" placeholder="{{ _('you@example.com') }}" required autocomplete="email">
+				</div>
+				<div class="row">
+					<div class="col-md-6 form-group">
+						<label for="r-category">{{ _("License Category") }}</label>
+						<select class="form-control" id="r-category">
+							<option value="Car" selected>Car</option>
+							<option value="Motorcycle">Motorcycle</option>
+							<option value="Heavy Vehicle">Heavy Vehicle</option>
+							<option value="Bus">Bus</option>
+							<option value="Other">Other</option>
+						</select>
+					</div>
+					<div class="col-md-6 form-group">
+						<label for="r-city">{{ _("City") }}</label>
+						<input type="text" class="form-control" id="r-city" placeholder="{{ _('Optional') }}">
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="r-address">{{ _("Address") }}</label>
+					<textarea class="form-control" id="r-address" rows="2" placeholder="{{ _('Optional') }}"></textarea>
+				</div>
+				<div class="row">
+					<div class="col-md-6 form-group">
+						<label for="r-password">{{ _("Password") }} <span class="text-muted small">({{ _("6+ characters") }})</span></label>
+						<input type="password" class="form-control" id="r-password" placeholder="{{ _('Choose a password') }}" autocomplete="new-password" minlength="6">
+					</div>
+					<div class="col-md-6 form-group">
+						<label for="r-password2">{{ _("Confirm Password") }}</label>
+						<input type="password" class="form-control" id="r-password2" autocomplete="new-password">
+					</div>
+				</div>
+				<button type="submit" class="btn btn-primary btn-block btn-lg" id="r-submit">
+					<span class="ds-btn-label">{{ _("Register") }}</span>
+					<span class="ds-btn-spinner" style="display:none">
+						<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span>{{ _("Creating account…") }}
+					</span>
+				</button>
+				<p class="text-center text-muted small mt-3 mb-0">
+					{{ _("Already have an account?") }}
+					<a href="/login">{{ _("Log in") }}</a>
+				</p>
+			</div>
+		</form>
 
-	<div class="card ds-card text-center" id="reg-done" style="display:none">
-		<div class="card-body py-5">
-			<h1 class="mb-3">🎉</h1>
-			<h4 class="mb-2" id="r-done-text"></h4>
-			<p class="text-muted mb-4">{{ _("You can now log in and start your journey.") }}</p>
-			<a class="btn btn-primary" href="/login">{{ _("Log In") }}</a>
-			<a class="btn btn-outline-secondary" href="/portal-home">{{ _("View Portal") }}</a>
+		<div class="card ds-card text-center" id="reg-done" style="display:none">
+			<div class="card-body py-5">
+				<h1 class="mb-3">🎉</h1>
+				<h4 class="mb-2" id="r-done-text"></h4>
+				<p class="text-muted mb-4">{{ _("You can now log in and start your journey.") }}</p>
+				<a class="btn btn-primary" href="/login">{{ _("Log In") }}</a>
+				<a class="btn btn-outline-secondary" href="/portal-home">{{ _("View Portal") }}</a>
+			</div>
 		</div>
-	</div>
+	{% endif %}
 </div>
 {% endblock %}

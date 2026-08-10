@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import datetime
+import re
 
 import frappe
 from frappe import _
@@ -100,10 +101,20 @@ def get_learner_summary():
 		limit_page_length=1,
 	)
 
+	upcoming_count = frappe.db.count(
+		"Lesson Booking",
+		{
+			"learner": learner,
+			"lesson_date": [">=", nowdate()],
+			"status": ["in", ACTIVE_BOOKING_STATUSES],
+		},
+	)
+
 	completed = frappe.db.count("Lesson Booking", {"learner": learner, "status": "Completed"})
 	no_shows = frappe.db.count("Lesson Booking", {"learner": learner, "status": "No Show"})
 
 	return {
+		"upcoming_count": upcoming_count,
 		"learner": {
 			"name": learner,
 			"learner_name": doc.learner_name,
@@ -641,6 +652,8 @@ def register_learner(full_name, mobile_number, email, category, password=None, c
 		frappe.throw(_("Name, mobile number and email are required."))
 	if not validate_email_address(email):
 		frappe.throw(_("Please enter a valid email address."))
+	if not re.match(r"^[0-9+()\- ]{7,15}$", mobile_number):
+		frappe.throw(_("Please enter a valid mobile number."))
 	if category not in _VALID_CATEGORIES:
 		frappe.throw(_("Please choose a valid category."))
 

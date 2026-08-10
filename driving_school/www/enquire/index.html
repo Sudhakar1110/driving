@@ -3,6 +3,7 @@
 {% block title %}{{ _("Enquire About Driving Lessons") }}{% endblock %}
 
 {% block page_content %}
+{% include "templates/includes/portal_nav.html" %}
 <div class="container my-4" style="max-width: 720px;">
 	<div class="text-center mb-4">
 		<div class="mb-2"><i class="fa fa-graduation-cap fa-3x text-primary"></i></div>
@@ -12,25 +13,25 @@
 
 	<div id="ds-msg"></div>
 
-	<div class="card ds-card" id="enquire-form">
+	<form id="enquire-form" class="card ds-card" novalidate>
 		<div class="card-body">
 			<div class="row">
 				<div class="col-md-6 form-group">
-					<label>{{ _("Full Name") }} *</label>
-					<input type="text" class="form-control" id="e-name" placeholder="{{ _('Your name') }}">
+					<label for="e-name">{{ _("Full Name") }} *</label>
+					<input type="text" class="form-control" id="e-name" placeholder="{{ _('Your name') }}" required autocomplete="name">
 				</div>
 				<div class="col-md-6 form-group">
-					<label>{{ _("Mobile Number") }} *</label>
-					<input type="text" class="form-control" id="e-mobile" placeholder="{{ _('10-digit mobile number') }}">
+					<label for="e-mobile">{{ _("Mobile Number") }} *</label>
+					<input type="tel" class="form-control" id="e-mobile" placeholder="{{ _('10-digit mobile number') }}" required autocomplete="tel">
 				</div>
 			</div>
 			<div class="row">
 				<div class="col-md-6 form-group">
-					<label>{{ _("Email") }}</label>
-					<input type="email" class="form-control" id="e-email" placeholder="{{ _('Optional') }}">
+					<label for="e-email">{{ _("Email") }}</label>
+					<input type="email" class="form-control" id="e-email" placeholder="{{ _('Optional') }}" autocomplete="email">
 				</div>
 				<div class="col-md-6 form-group">
-					<label>{{ _("License Category") }}</label>
+					<label for="e-category">{{ _("License Category") }}</label>
 					<select class="form-control" id="e-category">
 						<option value="Car" selected>Car</option>
 						<option value="Motorcycle">Motorcycle</option>
@@ -41,12 +42,17 @@
 				</div>
 			</div>
 			<div class="form-group">
-				<label>{{ _("Message") }}</label>
+				<label for="e-message">{{ _("Message") }}</label>
 				<textarea class="form-control" id="e-message" rows="3" placeholder="{{ _('Anything you would like us to know') }}"></textarea>
 			</div>
-			<button class="btn btn-primary btn-block btn-lg" id="e-submit">{{ _("Submit Enquiry") }}</button>
+			<button type="submit" class="btn btn-primary btn-block btn-lg" id="e-submit">
+				<span class="ds-btn-label">{{ _("Submit Enquiry") }}</span>
+				<span class="ds-btn-spinner" style="display:none">
+					<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span>{{ _("Sending…") }}
+				</span>
+			</button>
 		</div>
-	</div>
+	</form>
 
 	<div class="card ds-card text-center" id="enquire-done" style="display:none">
 		<div class="card-body py-5">

@@ -17,10 +17,13 @@ frappe.ready(() => {
 		$("#l-name").text(l.learner_name || "—");
 		$("#l-status").text(l.status || "—");
 		$("#l-stage").text(l.training_stage || "—");
+		$("#l-cat-text").text(l.category || "—");
 		$("#c-completed").text(data.completed_lessons || 0);
 		$("#c-noshows").text(data.no_shows || 0);
-
 		const pkg = data.active_package;
+		$("#c-upcoming").text(data.upcoming_count || 0);
+		$("#pkg-balance-hero").text(pkg ? fmtMoney(pkg.balance_amount) : "—");
+
 		if (pkg) {
 			$("#pkg-block").show();
 			$("#pkg-name").text(pkg.package_name);

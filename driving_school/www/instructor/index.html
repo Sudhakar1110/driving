@@ -3,6 +3,7 @@
 {% block title %}{{ _("Instructor Dashboard") }}{% endblock %}
 
 {% block page_content %}
+{% include "templates/includes/portal_nav.html" %}
 <div class="container my-4" style="max-width: 960px;">
 	{% if not instructor %}
 		<div class="text-center py-5">

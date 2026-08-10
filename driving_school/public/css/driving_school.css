@@ -38,3 +38,92 @@
 		font-size: 1.2rem;
 	}
 }
+
+/* portal top navigation */
+.ds-nav {
+	background: #ffffff;
+	border-bottom: 1px solid #e5e7eb;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+}
+
+.ds-nav .ds-brand {
+	font-weight: 700;
+	color: #1d2939;
+	text-decoration: none;
+	font-size: 1.05rem;
+}
+
+.ds-nav .ds-nav-links a {
+	color: #475467;
+	font-weight: 500;
+	margin-right: 1.1rem;
+	padding: 4px 0;
+	border-bottom: 2px solid transparent;
+	text-decoration: none;
+}
+
+.ds-nav .ds-nav-links a:hover,
+.ds-nav .ds-nav-links a.ds-active {
+	color: #1d4ed8;
+	border-bottom-color: #1d4ed8;
+}
+
+.ds-nav .ds-nav-links a.ds-login {
+	background: #1d4ed8;
+	color: #ffffff;
+	padding: 4px 14px;
+	border-radius: 6px;
+	border-bottom: none;
+}
+
+.ds-nav .ds-nav-links a.ds-login:hover {
+	background: #1e40af;
+	color: #ffffff;
+}
+
+.ds-nav .ds-nav-links a.ds-logout {
+	color: #b42318;
+}
+
+/* portal hero banner */
+.ds-hero {
+	background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+	color: #ffffff;
+	border-radius: 14px;
+}
+
+.ds-hero .opacity-75 {
+	opacity: 0.85;
+}
+
+/* quick action cards */
+.ds-quick-action {
+	display: block;
+	border-radius: 10px;
+	padding: 1rem;
+	text-align: center;
+	color: #1d2939;
+	background: #f9fafb;
+	border: 1px solid #e5e7eb;
+	text-decoration: none;
+	transition: all 0.15s ease;
+	height: 100%;
+}
+
+.ds-quick-action i {
+	font-size: 1.5rem;
+	display: block;
+	margin-bottom: 6px;
+}
+
+.ds-quick-action:hover {
+	border-color: #1d4ed8;
+	color: #1d4ed8;
+	background: #eff6ff;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 10px rgba(16, 24, 40, 0.08);
+}
+
+.ds-quick-action small {
+	font-weight: 400;
+}

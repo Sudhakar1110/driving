@@ -44,6 +44,14 @@ def get_instructor_for_user(user=None):
 	return name
 
 
+def is_logged_in_user_instructor():
+	"""True when the current session user is linked to a Driving Instructor."""
+	user = frappe.session.user
+	if not user or user == "Guest":
+		return False
+	return bool(get_instructor_for_user(user))
+
+
 def get_learner_for_context():
 	"""Learner for the current request (public demo mode).
 
