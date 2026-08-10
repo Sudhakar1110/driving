@@ -39,6 +39,168 @@
 	}
 }
 
+/* my-progress redesign */
+.ds-journey {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+}
+
+.ds-step {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	position: relative;
+	text-align: center;
+}
+
+.ds-step:not(:last-child)::after {
+	content: "";
+	position: absolute;
+	top: 16px;
+	left: 50%;
+	width: 100%;
+	height: 2px;
+	background: #e5e7eb;
+}
+
+.ds-step.done:not(:last-child)::after {
+	background: #16a34a;
+}
+
+.ds-step-dot {
+	position: relative;
+	z-index: 1;
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	background: #f2f4f7;
+	border: 2px solid #d0d5dd;
+	color: #667085;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.8rem;
+	font-weight: 700;
+}
+
+.ds-step.done .ds-step-dot {
+	background: #16a34a;
+	border-color: #16a34a;
+	color: #ffffff;
+}
+
+.ds-step.active .ds-step-dot {
+	background: #1d4ed8;
+	border-color: #1d4ed8;
+	color: #ffffff;
+	box-shadow: 0 0 0 4px #dbeafe;
+}
+
+.ds-step-label {
+	font-size: 0.72rem;
+	color: #667085;
+	margin-top: 6px;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	white-space: nowrap;
+}
+
+.ds-step.done .ds-step-label {
+	color: #16a34a;
+}
+
+.ds-step.active .ds-step-label {
+	color: #1d4ed8;
+	font-weight: 600;
+}
+
+.ds-progress {
+	height: 10px;
+	border-radius: 999px;
+	background: #f2f4f7;
+	overflow: hidden;
+}
+
+.ds-progress.small {
+	height: 8px;
+	max-width: 140px;
+}
+
+.ds-progress-bar {
+	height: 100%;
+	border-radius: 999px;
+	background: linear-gradient(90deg, #1d4ed8, #3b82f6);
+	transition: width 0.4s ease;
+}
+
+.ds-progress-bar.small {
+	height: 100%;
+}
+
+.ds-progress-bar.done {
+	background: #16a34a;
+}
+
+.ds-stat-icon {
+	width: 40px;
+	height: 40px;
+	border-radius: 10px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 10px;
+}
+
+.ds-stat-icon svg {
+	width: 20px;
+	height: 20px;
+}
+
+.ds-bg-blue {
+	background: #eff6ff;
+	color: #1d4ed8;
+}
+
+.ds-bg-indigo {
+	background: #eef2ff;
+	color: #4f46e5;
+}
+
+.ds-bg-green {
+	background: #ecfdf5;
+	color: #059669;
+}
+
+.ds-bg-amber {
+	background: #fffbeb;
+	color: #d97706;
+}
+
+.font-weight-medium {
+	font-weight: 500;
+}
+
+@media (max-width: 575px) {
+	.ds-step-dot {
+		width: 26px;
+		height: 26px;
+		font-size: 0.7rem;
+	}
+
+	.ds-step:not(:last-child)::after {
+		top: 13px;
+	}
+
+	.ds-step-label {
+		font-size: 0.62rem;
+		white-space: normal;
+		line-height: 1.15;
+	}
+}
+
 /* mobile: links stack vertically under the hamburger */
 @media (max-width: 991px) {
 	.ds-nav .ds-nav-links {
