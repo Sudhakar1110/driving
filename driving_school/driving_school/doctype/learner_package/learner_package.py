@@ -27,6 +27,25 @@ class LearnerPackage(Document):
 		if cint(self.lessons_count) <= 0:
 			frappe.throw(_("Lessons included must be greater than zero."))
 
+		# Friendly guard instead of a raw DB error: the amount columns are
+		# DECIMAL(18,2) - at most 16 integer digits - so values of 1e16 and
+		# above overflow on insert ("Out of range value for column 'amount'").
+		# (Boundary is >= 1e16: 9999999999999999.99 fits, 10000000000000000
+		# does not. Using an int literal avoids float rounding at the limit.)
+		MAX_AMOUNT = 10000000000000000
+		for label, value in (
+			(_("Amount"), self.amount),
+			(_("Discount Amount"), self.discount_amount),
+		):
+			if flt(value) < 0:
+				frappe.throw(_("{0} cannot be negative.").format(label))
+			if flt(value) >= MAX_AMOUNT:
+				frappe.throw(
+					_("{0} is too large ({1}). Please enter a valid package price.").format(
+						label, flt(value)
+					)
+				)
+
 		self.discounted_amount = flt(self.amount) - flt(self.discount_amount)
 		if self.discounted_amount < 0:
 			frappe.throw(_("Discount amount cannot exceed the package amount."))

@@ -197,6 +197,40 @@ class TestSalesInvoiceBridge(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		super().tearDown()
 
+	def test_package_amount_overflow_gives_friendly_error(self):
+		"""Regression: an absurd amount used to crash with a raw DB DataError
+		('Out of range value for column amount') - now a clear ValidationError."""
+		with self.assertRaises(frappe.ValidationError) as ctx:
+			frappe.get_doc(
+				{
+					"doctype": "Learner Package",
+					"learner": self.learner.name,
+					"package_name": "Overflow Pkg",
+					"license_category": "Car",
+					"lessons_count": 10,
+					"amount": 11000000000000000000,
+					"status": "Active",
+					"is_active": 1,
+				}
+			).insert(ignore_permissions=True)
+		self.assertIn("too large", str(ctx.exception))
+
+	def test_negative_amount_gives_friendly_error(self):
+		with self.assertRaises(frappe.ValidationError) as ctx:
+			frappe.get_doc(
+				{
+					"doctype": "Learner Package",
+					"learner": self.learner.name,
+					"package_name": "Neg Pkg",
+					"license_category": "Car",
+					"lessons_count": 10,
+					"amount": -100,
+					"status": "Active",
+					"is_active": 1,
+				}
+			).insert(ignore_permissions=True)
+		self.assertIn("cannot be negative", str(ctx.exception))
+
 	def test_received_payment_does_not_break_without_erpnext(self):
 		"""The invoice bridge must be a no-op (never crash) without ERPNext."""
 		package = frappe.get_doc(
