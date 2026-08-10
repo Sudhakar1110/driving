@@ -74,7 +74,10 @@ frappe.ready(() => {
 		frappe.call({
 			method: "driving_school.api.get_resources",
 			callback: (r) => {
-				if (r.exc) return;
+				if (r.exc) {
+					showMsg(__("Could not load instructors and vehicles: ") + (r._server_messages ? r._server_messages.join(" ") : __("server error")), "warning");
+					return;
+				}
 				const res = r.message || {};
 				const $ins = $("#instructor").empty().append('<option value="">' + __("Select instructor") + "</option>");
 				(res.instructors || []).forEach((i) =>
@@ -91,6 +94,9 @@ frappe.ready(() => {
 							"</option>"
 					)
 				);
+			},
+			error: () => {
+				showMsg(__("Could not load instructors and vehicles. Please refresh the page."), "warning");
 			},
 		});
 	}
@@ -115,8 +121,18 @@ frappe.ready(() => {
 				vehicle: $("#vehicle").val() || null,
 			},
 			callback: (r) => {
-				if (r.exc) return;
+				if (r.exc) {
+					showMsg(
+						__("Time slots could not be loaded: ") +
+							(r._server_messages ? r._server_messages.join(" ") : __("server error")),
+						"warning"
+					);
+					return;
+				}
 				renderSlots(r.message || []);
+			},
+			error: () => {
+				$("#slot-grid").html('<span class="text-danger">' + __("Time slots could not be loaded. Please refresh the page.") + "</span>");
 			},
 		});
 	}
