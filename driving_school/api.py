@@ -529,22 +529,35 @@ def get_my_payments():
 
 
 @frappe.whitelist(allow_guest=True)
-def request_payment(package, amount, mode_of_payment, reference_number=None):
+def request_payment(amount, mode_of_payment, package=None, payment_type=None, reference_number=None):
+	"""Record a payment request. A package is optional: package-less requests
+	(registration fee, add-on lessons, test fees, etc.) are allowed so learners
+	without an active package can still pay the school."""
 	learner = _get_learner()
 
-	pkg = frappe.get_doc("Learner Package", package)
-	if pkg.learner != learner:
-		frappe.throw(_("The selected package does not belong to your account."), frappe.PermissionError)
+	if flt(amount) <= 0:
+		frappe.throw(_("Please enter a valid amount."))
+
+	if package:
+		pkg = frappe.get_doc("Learner Package", package)
+		if pkg.learner != learner:
+			frappe.throw(_("The selected package does not belong to your account."), frappe.PermissionError)
+		payment_type = payment_type or "Package Fee"
+	else:
+		payment_type = payment_type or "Other"
+
+	if payment_type not in ("Package Fee", "Installment", "Add-on Lesson", "Test Fee", "Refund", "Other"):
+		frappe.throw(_("Please choose a valid payment type."))
 
 	doc = frappe.get_doc(
 		{
 			"doctype": "Learner Payment",
 			"learner": learner,
-			"package": package,
-			"amount": amount,
+			"package": package or None,
+			"amount": flt(amount),
 			"mode_of_payment": mode_of_payment,
 			"reference_number": reference_number or "",
-			"payment_type": "Package Fee",
+			"payment_type": payment_type,
 			"status": "Requested",
 		}
 	)

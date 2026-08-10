@@ -11,6 +11,7 @@ from driving_school.api import (
 	get_class_schedules,
 	get_instructor_dashboard,
 	register_learner,
+	request_payment,
 	submit_enquiry,
 	update_lesson_status,
 )
@@ -230,6 +231,29 @@ class TestSalesInvoiceBridge(IntegrationTestCase):
 				}
 			).insert(ignore_permissions=True)
 		self.assertIn("cannot be negative", str(ctx.exception))
+
+	def test_package_less_payment_request_succeeds(self):
+		"""Learners without an active package can still record a payment request
+		(registration fee, add-on lessons, etc.) - no hard gate."""
+		frappe.set_user("Guest")
+		result = request_payment(
+			amount=500, mode_of_payment="UPI", payment_type="Other", reference_number="TXN-DEMO-1"
+		)
+		self.assertTrue(frappe.db.exists("Learner Payment", result["name"]))
+		payment = frappe.get_doc("Learner Payment", result["name"])
+		self.assertIsNone(payment.package)
+		self.assertEqual(payment.payment_type, "Other")
+		self.assertEqual(payment.status, "Requested")
+
+	def test_payment_request_rejects_invalid_type(self):
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.ValidationError):
+			request_payment(amount=100, mode_of_payment="Cash", payment_type="Nonsense")
+
+	def test_payment_request_rejects_zero_amount(self):
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.ValidationError):
+			request_payment(amount=0, mode_of_payment="Cash")
 
 	def test_received_payment_does_not_break_without_erpnext(self):
 		"""The invoice bridge must be a no-op (never crash) without ERPNext."""

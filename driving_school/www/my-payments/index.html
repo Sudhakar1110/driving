@@ -62,10 +62,22 @@
 		<div class="card ds-card">
 			<div class="card-header bg-white"><strong>{{ _("Request a Payment") }}</strong></div>
 			<div class="card-body">
+				<div id="pay-notice" class="alert alert-info py-2 small" style="display:none"></div>
 				<p class="text-muted small">
-					{{ _("Record a payment request against your package. The school will confirm it once received (cash, UPI, bank transfer, etc.).") }}
+					{{ _("Record a payment request for your package or any other fee. The school will confirm it once received (cash, UPI, bank transfer, etc.).") }}
 				</p>
 				<div class="row">
+					<div class="col-md-3 form-group">
+						<label>{{ _("Payment Type") }}</label>
+						<select class="form-control" id="pay-type">
+							<option value="Package Fee">Package Fee</option>
+							<option value="Installment">Installment</option>
+							<option value="Add-on Lesson">Add-on Lesson</option>
+							<option value="Test Fee">Test Fee</option>
+							<option value="Refund">Refund</option>
+							<option value="Other">Other</option>
+						</select>
+					</div>
 					<div class="col-md-3 form-group">
 						<label>{{ _("Amount") }}</label>
 						<input type="number" min="0" step="0.01" class="form-control" id="pay-amount">
@@ -86,7 +98,9 @@
 						<label>{{ _("Reference Number") }}</label>
 						<input type="text" class="form-control" id="pay-ref" placeholder="{{ _('UTR / transaction id') }}">
 					</div>
-					<div class="col-md-3 d-flex align-items-end">
+				</div>
+				<div class="row">
+					<div class="col-md-3 offset-md-9">
 						<button class="btn btn-primary btn-block" id="pay-btn">{{ _("Submit Request") }}</button>
 					</div>
 				</div>

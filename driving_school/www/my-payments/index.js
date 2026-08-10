@@ -10,23 +10,53 @@ frappe.ready(() => {
 			method: "driving_school.api.get_my_payments",
 			callback: (r) => {
 				if (r.exc) {
-					showMsg("Could not load payments. Please try again.", "danger");
+					showMsg(
+						__("Could not load payments: ") +
+							(r._server_messages ? r._server_messages.join(" ") : __("server error")),
+						"danger"
+					);
 					return;
 				}
 				render(r.message || {});
 			},
+			error: () => showMsg(__("Could not load payments. Please try again."), "danger"),
 		});
 	}
 
 	function render(data) {
 		const pkg = data.active_package;
 		state.package = pkg ? pkg.name : null;
-		state.balance = pkg ? pkg.balance_amount : 0;
+		state.balance = pkg ? Number(pkg.balance_amount || 0) : 0;
 
 		$("#p-total-paid").text(fmtMoney(data.total_paid));
-		$("#p-balance").text(fmtMoney(pkg ? pkg.balance_amount : 0));
-		$("#p-pkg").text(pkg ? pkg.package_name : "None");
-		$("#pay-amount").val(pkg ? pkg.balance_amount : "");
+		$("#p-balance").text(fmtMoney(state.balance));
+		$("#p-pkg").text(pkg ? pkg.package_name : __("None"));
+
+		if (pkg && state.balance > 0) {
+			$("#pay-notice")
+				.removeClass("alert-info alert-warning alert-success")
+				.addClass("alert-info")
+				.html(__("Your package has an outstanding balance of ") + "<strong>" + fmtMoney(state.balance) + "</strong>.")
+				.show();
+			$("#pay-amount").val(state.balance);
+			$("#pay-type").val("Package Fee");
+		} else if (pkg) {
+			$("#pay-notice")
+				.removeClass("alert-info alert-warning alert-success")
+				.addClass("alert-success")
+				.html(__("Your package is fully paid. You can still record a payment (add-on lessons, test fees, etc.)."))
+				.show();
+			$("#pay-amount").val("");
+			$("#pay-type").val("Add-on Lesson");
+		} else {
+			$("#pay-notice")
+				.removeClass("alert-info alert-warning alert-success")
+				.addClass("alert-warning")
+				.html(__("No active package yet. You can still record a payment (registration fee, add-on lessons, test fees, etc.)."))
+				.show();
+			$("#pay-amount").val("");
+			$("#pay-type").val("Other");
+		}
 
 		const $tbody = $("#payment-table").empty();
 		const payments = data.payments || [];
@@ -62,10 +92,6 @@ frappe.ready(() => {
 	}
 
 	$("#pay-btn").on("click", () => {
-		if (!state.package) {
-			showMsg(__("You do not have an active package to pay for."), "warning");
-			return;
-		}
 		const amount = parseFloat($("#pay-amount").val());
 		if (!amount || amount <= 0) {
 			showMsg(__("Enter a valid amount."), "warning");
@@ -76,6 +102,7 @@ frappe.ready(() => {
 			args: {
 				package: state.package,
 				amount: amount,
+				payment_type: $("#pay-type").val(),
 				mode_of_payment: $("#pay-mode").val(),
 				reference_number: $("#pay-ref").val(),
 			},
@@ -94,6 +121,7 @@ frappe.ready(() => {
 				$("#pay-ref").val("");
 				load();
 			},
+			error: () => showMsg(__("Payment request failed. Please try again."), "danger"),
 		});
 	});
 
