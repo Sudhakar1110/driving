@@ -5,11 +5,12 @@ import re
 
 import frappe
 from frappe import _
-from frappe.utils import cint, getdate, nowdate, validate_email_address
+from frappe.utils import add_days, cint, getdate, nowdate, validate_email_address
 
 from driving_school.utils import (
 	get_demo_learner,
 	get_instructor_for_user,
+	get_or_create_learner_for_user,
 	get_learner_for_user,
 	to_time,
 )
@@ -27,7 +28,9 @@ def _get_learner():
 	"""
 	user = frappe.session.user
 	if user and user != "Guest":
-		name = get_learner_for_user(user)
+		# Self-service: logged-in users get their own Learner profile created
+		# automatically when they don't have one (no manual linking needed).
+		name = get_or_create_learner_for_user(user)
 		if name:
 			return name
 		frappe.throw(
@@ -167,6 +170,110 @@ def get_resources():
 		order_by="vehicle_number asc",
 	)
 	return {"instructors": instructors, "vehicles": vehicles}
+
+
+# ---------------------------------------------------------------- schedules
+
+@frappe.whitelist()
+def get_class_schedules(days=7):
+	"""Public timetable: upcoming theory classes and daily lesson availability.
+
+	Reads live from the same doctypes the desk uses (Theory Class, Lesson
+	Booking, Instructor Leave, Driving Vehicle), so the portal is always in
+	sync with the backend. No login required.
+	"""
+	days = cint(days) or 7
+	days = min(max(days, 1), 14)
+	date_from = nowdate()
+	date_to = add_days(date_from, days - 1)
+	settings = frappe.get_single("Driving School Settings")
+
+	theory_classes = frappe.get_all(
+		"Theory Class",
+		filters={
+			"class_date": ["between", [date_from, date_to]],
+			"status": ["!=", "Cancelled"],
+		},
+		fields=["name", "title", "class_date", "start_time", "end_time", "instructor", "venue", "branch"],
+		order_by="class_date asc, start_time asc",
+	)
+	for tc in theory_classes:
+		tc["instructor_name"] = (
+			frappe.db.get_value("Driving Instructor", tc.instructor, "instructor_name")
+			if tc.instructor
+			else None
+		)
+		tc["branch_name"] = (
+			frappe.db.get_value("Driving School Branch", tc.branch, "branch_name") if tc.branch else None
+		)
+
+	active_instructors = frappe.get_all(
+		"Driving Instructor",
+		filters={"is_active": 1, "employment_status": ["!=", "Resigned"]},
+		pluck="name",
+	)
+	vehicles = frappe.get_all(
+		"Driving Vehicle",
+		filters={"is_active": 1, "status": "Available"},
+		pluck="name",
+	)
+
+	start_t = to_time(settings.business_start_time) if settings.business_start_time else datetime.time(9, 0)
+	end_t = to_time(settings.business_end_time) if settings.business_end_time else datetime.time(18, 0)
+	duration = cint(settings.lesson_duration_minutes) or 60
+
+	days_out = []
+	cur_day = getdate(date_from)
+	for _i in range(days):
+		day_str = cur_day.strftime("%Y-%m-%d")
+
+		on_leave = set(
+			row[0]
+			for row in frappe.db.sql(
+				"""
+				select instructor from `tabInstructor Leave`
+				where status = "Approved" and from_date <= %s and to_date >= %s
+				""",
+				(day_str, day_str),
+			)
+		)
+		has_instructor = any(i not in on_leave for i in active_instructors)
+		has_vehicle = bool(vehicles)
+
+		# date_format normalises the TIME column to a zero-padded "HH:MM:SS" string
+		# (the MariaDB driver can otherwise return it as a timedelta).
+		booked_times = set(
+			row[0]
+			for row in frappe.db.sql(
+				"""
+				select date_format(start_time, '%H:%i:%s') from `tabLesson Booking`
+				where lesson_date = %s and status in ("Requested", "Confirmed", "On Waitlist")
+				""",
+				day_str,
+			)
+		)
+
+		slots = []
+		cursor = datetime.datetime.combine(cur_day, start_t)
+		end_dt = datetime.datetime.combine(cur_day, end_t)
+		now = datetime.datetime.now()
+		while cursor < end_dt:
+			key = cursor.time().strftime("%H:%M:%S")
+			available = has_instructor and has_vehicle and key not in booked_times
+			if day_str == nowdate() and cursor <= now:
+				available = False
+			slots.append({"start_time": key, "available": available})
+			cursor += datetime.timedelta(minutes=duration)
+
+		days_out.append({"date": day_str, "slots": slots})
+		cur_day += datetime.timedelta(days=1)
+
+	return {
+		"theory_classes": theory_classes,
+		"days": days_out,
+		"date_from": date_from,
+		"has_resources": bool(active_instructors) and bool(vehicles),
+	}
 
 
 # ---------------------------------------------------------------- booking

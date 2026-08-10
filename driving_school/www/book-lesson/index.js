@@ -53,7 +53,11 @@ frappe.ready(() => {
 		});
 	}
 
-	$("#lesson-date").val(frappe.datetime.get_today()).on("change", loadSlots);
+	// Pre-fill the date when arriving from the class schedules page (?date=YYYY-MM-DD).
+	const urlDate = new URLSearchParams(window.location.search).get("date");
+	$("#lesson-date")
+		.val(urlDate || frappe.datetime.get_today())
+		.on("change", loadSlots);
 	$("#instructor").on("change", loadSlots);
 	$("#vehicle").on("change", loadSlots);
 	loadSlots();

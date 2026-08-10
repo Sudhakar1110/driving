@@ -5,12 +5,14 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, nowdate
 
 from driving_school.api import (
+	get_class_schedules,
 	get_instructor_dashboard,
 	register_learner,
 	submit_enquiry,
 	update_lesson_status,
 )
 from driving_school.tests.helpers import make_instructor, make_learner, make_vehicle
+from driving_school.utils import get_learner_for_context
 
 
 class TestPublicForms(IntegrationTestCase):
@@ -46,6 +48,15 @@ class TestPublicForms(IntegrationTestCase):
 	def test_register_learner_requires_valid_email(self):
 		with self.assertRaises(frappe.ValidationError):
 			register_learner("Bad Email", "9812345678", "not-an-email", "Car")
+
+	def test_logged_in_user_auto_creates_learner_profile(self):
+		"""No manual linking needed: the portal creates a Learner for the user."""
+		frappe.set_user("Administrator")
+		name, display = get_learner_for_context()
+		self.assertTrue(name)
+		self.assertEqual(frappe.db.get_value("Learner", name, "email"), "Administrator")
+		# second call reuses the same profile
+		self.assertEqual(get_learner_for_context()[0], name)
 
 
 class TestInstructorPortal(IntegrationTestCase):
@@ -153,3 +164,56 @@ class TestSalesInvoiceBridge(IntegrationTestCase):
 		self.assertEqual(
 			frappe.db.get_value("Learner Package", package.name, "balance_amount"), 0
 		)
+
+
+class TestClassSchedules(IntegrationTestCase):
+	def setUp(self):
+		frappe.set_user("Administrator")
+		self.instructor = make_instructor(["Car"])
+		self.vehicle = make_vehicle()
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		super().tearDown()
+
+	def test_schedules_include_theory_classes_and_slots(self):
+		tomorrow = add_days(nowdate(), 1)
+		frappe.get_doc(
+			{
+				"doctype": "Theory Class",
+				"title": "Road Rules",
+				"class_date": tomorrow,
+				"start_time": "10:00:00",
+				"end_time": "11:00:00",
+				"instructor": self.instructor.name,
+				"status": "Scheduled",
+			}
+		).insert(ignore_permissions=True)
+
+		frappe.set_user("Guest")
+		result = get_class_schedules(days=7)
+		self.assertTrue(any(tc["title"] == "Road Rules" for tc in result["theory_classes"]))
+		self.assertEqual(len(result["days"]), 7)
+		self.assertTrue(all(len(d["slots"]) > 0 for d in result["days"]))
+		self.assertTrue(all("start_time" in s for d in result["days"] for s in d["slots"]))
+
+	def test_booked_slot_is_marked_unavailable(self):
+		tomorrow = add_days(nowdate(), 1)
+		learner = make_learner("Slot Learner")
+		frappe.get_doc(
+			{
+				"doctype": "Lesson Booking",
+				"learner": learner.name,
+				"instructor": self.instructor.name,
+				"vehicle": self.vehicle.name,
+				"lesson_date": tomorrow,
+				"start_time": "09:00:00",
+				"status": "Confirmed",
+			}
+		).insert(ignore_permissions=True)
+
+		frappe.set_user("Guest")
+		result = get_class_schedules(days=7)
+		day = next(d for d in result["days"] if d["date"] == tomorrow.strftime("%Y-%m-%d"))
+		slot = next(s for s in day["slots"] if s["start_time"] == "09:00:00")
+		self.assertFalse(slot["available"])

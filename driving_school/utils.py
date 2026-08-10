@@ -4,6 +4,7 @@ import datetime
 
 import frappe
 from frappe import _
+from frappe.utils import cint
 
 
 def get_settings():
@@ -44,6 +45,50 @@ def get_instructor_for_user(user=None):
 	return name
 
 
+def get_or_create_learner_for_user(user=None):
+	"""Learner linked to a logged-in user, auto-created when missing.
+
+	Self-service portal: logging in with an account that has no Learner
+	profile creates one automatically (subject to the
+	``auto_create_learner_on_login`` setting), so every user gets a working
+	portal immediately - no manual linking required. Anonymous visitors are
+	never auto-created. Returns the Learner name or None.
+	"""
+	user = user or frappe.session.user
+	if not user or user == "Guest":
+		return None
+
+	name = get_learner_for_user(user)
+	if name:
+		return name
+
+	if not cint(get_settings().auto_create_learner_on_login):
+		return None
+
+	full_name = frappe.db.get_value("User", user, "full_name") or user
+	mobile_no = frappe.db.get_value("User", user, "mobile_no") or ""
+
+	doc = frappe.get_doc(
+		{
+			"doctype": "Learner",
+			"learner_name": full_name,
+			"mobile_number": mobile_no,
+			"email": user,
+			"category": "Car",
+			"source": "Portal",
+			"status": "Registered",
+			"training_stage": "Not Started",
+		}
+	)
+	try:
+		doc.insert(ignore_permissions=True, ignore_mandatory=True)
+		return doc.name
+	except Exception:
+		# e.g. a concurrent request created the profile in the meantime
+		frappe.log_error(frappe.get_traceback(), "Driving School: auto-create learner failed")
+		return get_learner_for_user(user)
+
+
 def is_logged_in_user_instructor():
 	"""True when the current session user is linked to a Driving Instructor."""
 	user = frappe.session.user
@@ -63,7 +108,7 @@ def get_learner_for_context():
 	"""
 	user = frappe.session.user
 	if user and user != "Guest":
-		name = get_learner_for_user(user)
+		name = get_or_create_learner_for_user(user)
 		if name:
 			return name, frappe.db.get_value("Learner", name, "learner_name")
 		return None, None

@@ -120,9 +120,28 @@ class TestLessonBookingRules(IntegrationTestCase):
 			}
 		).insert(ignore_permissions=True)
 
-	def test_logged_in_user_without_profile_cannot_use_demo_learner(self):
-		"""Staff without a linked Learner profile must not act on the demo learner."""
+	def test_logged_in_user_gets_own_auto_created_learner(self):
+		"""A logged-in user without a profile gets their own auto-created learner -
+		never the demo learner - so the portal works without manual linking."""
 		set_limits(max_per_week=10, min_gap=0)
 		frappe.set_user("Administrator")
+		result = book_lesson(
+			add_days(nowdate(), 3), "09:00:00", self.instructor.name, self.vehicle.name
+		)
+		booking = frappe.get_doc("Lesson Booking", result["name"])
+		self.assertNotEqual(booking.learner, self.learner.name)
+		self.assertEqual(
+			frappe.db.get_value("Learner", booking.learner, "email"), "Administrator"
+		)
+
+	def test_auto_create_disabled_blocks_booking(self):
+		"""With auto-create turned off, users without a profile are rejected."""
+		set_limits(max_per_week=10, min_gap=0)
+		frappe.db.set_single_value(
+			"Driving School Settings", "auto_create_learner_on_login", 0
+		)
+		frappe.set_user("Administrator")
 		with self.assertRaises(frappe.PermissionError):
-			self._book(add_days(nowdate(), 3))
+			book_lesson(
+				add_days(nowdate(), 3), "09:00:00", self.instructor.name, self.vehicle.name
+			)

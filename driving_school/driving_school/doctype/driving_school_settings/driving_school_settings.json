@@ -10,6 +10,8 @@
   "default_branch",
   "admin_email",
   "column_break_general",
+  "section_portal",
+  "auto_create_learner_on_login",
   "business_start_time",
   "business_end_time",
   "section_booking",
@@ -55,6 +57,18 @@
   {
    "fieldname": "column_break_general",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_portal",
+   "fieldtype": "Section Break",
+   "label": "Portal Access"
+  },
+  {
+   "default": 1,
+   "description": "When a logged-in user has no Learner profile, create one automatically so the portal works immediately (no manual linking).",
+   "fieldname": "auto_create_learner_on_login",
+   "fieldtype": "Check",
+   "label": "Auto-create Learner on Login"
   },
   {
    "default": "09:00:00",

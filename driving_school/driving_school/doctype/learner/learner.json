@@ -120,7 +120,7 @@
    "fieldname": "source",
    "fieldtype": "Select",
    "label": "Source",
-   "options": "\nWalk-in\nWebsite\nReference\nSocial Media\nAdvertisement\nOther"
+   "options": "\nWalk-in\nWebsite\nPortal\nReference\nSocial Media\nAdvertisement\nOther"
   },
   {
    "fieldname": "branch",

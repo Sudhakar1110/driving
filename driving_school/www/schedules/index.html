@@ -1,0 +1,56 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Class Schedules") }}{% endblock %}
+
+{% block page_content %}
+{% include "templates/includes/portal_nav.html" %}
+<div class="container my-4" style="max-width: 1000px;">
+	<div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+		<div>
+			<h4 class="mb-0">{{ _("Class Schedules") }}</h4>
+			<p class="text-muted mb-0 small">{{ _("Live timetable from the school system - theory classes and open lesson slots for the next 7 days.") }}</p>
+		</div>
+		{% if is_logged_in %}
+			<a class="btn btn-primary btn-sm" href="/book-lesson">{{ _("Book a Lesson") }}</a>
+		{% else %}
+			<a class="btn btn-primary btn-sm" href="/register">{{ _("Register to Book") }}</a>
+		{% endif %}
+	</div>
+	<div id="ds-msg"></div>
+
+	<div class="card ds-card mb-4">
+		<div class="card-header bg-white"><strong>{{ _("Theory Classes") }}</strong></div>
+		<div class="table-responsive">
+			<table class="table table-hover mb-0">
+				<thead class="thead-light">
+					<tr>
+						<th>{{ _("Date") }}</th>
+						<th>{{ _("Time") }}</th>
+						<th>{{ _("Class") }}</th>
+						<th>{{ _("Instructor") }}</th>
+						<th>{{ _("Venue") }}</th>
+						<th>{{ _("Branch") }}</th>
+					</tr>
+				</thead>
+				<tbody id="theory-table"></tbody>
+			</table>
+		</div>
+	</div>
+
+	<div class="card ds-card mb-4">
+		<div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap">
+			<strong>{{ _("Lesson Availability") }}</strong>
+			<span class="small text-muted">{{ _("Green slots are open for booking.") }}</span>
+		</div>
+		<div class="card-body" id="availability"></div>
+	</div>
+
+	<div class="text-center text-muted small mb-4">
+		{% if is_logged_in %}
+			{{ _("Pick an open slot on the Book a Lesson page - your date is pre-filled for you.") }}
+		{% else %}
+			{{ _("Log in or register to book an open slot.") }}
+		{% endif %}
+	</div>
+</div>
+{% endblock %}
