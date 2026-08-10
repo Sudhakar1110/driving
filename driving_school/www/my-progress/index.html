@@ -6,11 +6,7 @@
 {% include "templates/includes/portal_nav.html" %}
 <div class="container my-4" style="max-width: 960px;">
 	{% if not learner %}
-		<div class="text-center py-5">
-			<div class="mb-3"><i class="fa fa-user-circle fa-4x text-muted"></i></div>
-			<h4>{{ _("No learner data yet") }}</h4>
-			<p class="text-muted">{{ _("Add a Learner record in the Driving School desk to see the demo portal.") }}</p>
-		</div>
+		{% include "templates/includes/portal_empty.html" %}
 	{% else %}
 		<h4 class="mb-3">{{ _("My Progress") }}</h4>
 		<div id="ds-msg"></div>

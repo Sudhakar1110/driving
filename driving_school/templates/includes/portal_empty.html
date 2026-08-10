@@ -1,0 +1,29 @@
+{#
+	Learner empty-state shown when no Learner is resolved for the current request.
+	- Logged-in users without a linked Learner profile get a clear explanation
+	  (their account is not linked) with contact + logout actions.
+	- Anonymous visitors see the public demo message with register/enquire actions.
+	Expects context variables: is_logged_in. The session user is read via frappe.session.user.
+#}
+<div class="text-center py-5">
+	<div class="mb-3"><i class="fa fa-user-circle fa-4x text-muted"></i></div>
+	{% if is_logged_in %}
+		<h4>{{ _("No learner profile linked") }}</h4>
+		<p class="text-muted mb-1">
+			{{ _("Your account") }} (<strong>{{ frappe.session.user }}</strong>) {{ _("is not linked to a Learner profile yet.") }}
+		</p>
+		<p class="text-muted">{{ _("Please contact the school so they can link your learner account, then refresh this page.") }}</p>
+		<div class="mt-4">
+			<a class="btn btn-outline-primary mr-2" href="/enquire">{{ _("Contact the School") }}</a>
+			<a class="btn btn-outline-secondary" href="/api/method/logout"
+				onclick="if (window.frappe) { event.preventDefault(); frappe.call({ method: 'logout', always: function () { window.location.href = '/login'; } }); }">{{ _("Log Out") }}</a>
+		</div>
+	{% else %}
+		<h4>{{ _("No learner data yet") }}</h4>
+		<p class="text-muted">{{ _("This portal is a public demo of the Driving School app.") }}</p>
+		<div class="mt-4">
+			<a class="btn btn-primary mr-2" href="/register">{{ _("Register as a Learner") }}</a>
+			<a class="btn btn-outline-primary" href="/enquire">{{ _("Enquire About Lessons") }}</a>
+		</div>
+	{% endif %}
+</div>
