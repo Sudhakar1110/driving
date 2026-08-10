@@ -179,8 +179,103 @@
 	color: #d97706;
 }
 
+.ds-bg-red {
+	background: #fef2f2;
+	color: #dc2626;
+}
+
 .font-weight-medium {
 	font-weight: 500;
+}
+
+/* my-lessons timeline */
+.ds-lesson-item {
+	display: flex;
+	padding: 14px 0;
+}
+
+.ds-lesson-item + .ds-lesson-item {
+	border-top: 1px solid #f2f4f7;
+}
+
+.ds-lesson-date {
+	position: relative;
+	width: 68px;
+	flex-shrink: 0;
+}
+
+.ds-lesson-date::after {
+	content: "";
+	position: absolute;
+	left: 50%;
+	top: 48px;
+	bottom: -14px;
+	width: 2px;
+	background: #e5e7eb;
+}
+
+.ds-lesson-item:last-child .ds-lesson-date::after {
+	display: none;
+}
+
+.ds-date-chip {
+	width: 52px;
+	margin: 0 auto;
+	border-radius: 10px;
+	background: #eff6ff;
+	border: 1px solid #bfdbfe;
+	color: #1d4ed8;
+	text-align: center;
+	padding: 6px 0 7px;
+}
+
+.ds-date-chip.muted {
+	background: #f9fafb;
+	border-color: #e5e7eb;
+	color: #98a2b3;
+}
+
+.ds-date-day {
+	display: block;
+	font-size: 1.15rem;
+	font-weight: 700;
+	line-height: 1.1;
+}
+
+.ds-date-month {
+	display: block;
+	font-size: 0.62rem;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.ds-lesson-body {
+	flex: 1;
+	min-width: 0;
+	padding-left: 14px;
+}
+
+.ds-lesson-time {
+	font-weight: 600;
+	color: #1d2939;
+}
+
+.ds-note {
+	background: #f9fafb;
+	border-left: 3px solid #dbeafe;
+	border-radius: 4px;
+	padding: 6px 10px;
+	color: #475467;
+}
+
+@media (max-width: 575px) {
+	.ds-lesson-date {
+		width: 56px;
+	}
+
+	.ds-date-chip {
+		width: 44px;
+	}
 }
 
 @media (max-width: 575px) {

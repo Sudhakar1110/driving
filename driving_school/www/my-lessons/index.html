@@ -8,20 +8,63 @@
 	{% if not learner %}
 		{% include "templates/includes/portal_empty.html" %}
 	{% else %}
-		<div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+		<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
 			<h4 class="mb-0">{{ _("My Lessons") }}</h4>
 			<a class="btn btn-primary btn-sm" href="/book-lesson">{{ _("Book a Lesson") }}</a>
 		</div>
 		<div id="ds-msg"></div>
 
+		<div class="row mb-4">
+			<div class="col-6 col-md-3 mb-3">
+				<div class="card ds-card h-100">
+					<div class="card-body">
+						<div class="ds-stat-icon ds-bg-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+						<div class="ds-stat" id="l-upcoming">—</div>
+						<div class="text-muted small">{{ _("Upcoming") }}</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-6 col-md-3 mb-3">
+				<div class="card ds-card h-100">
+					<div class="card-body">
+						<div class="ds-stat-icon ds-bg-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg></div>
+						<div class="ds-stat" id="l-completed">—</div>
+						<div class="text-muted small">{{ _("Completed") }}</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-6 col-md-3 mb-3">
+				<div class="card ds-card h-100">
+					<div class="card-body">
+						<div class="ds-stat-icon ds-bg-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+						<div class="ds-stat" id="l-cancelled">—</div>
+						<div class="text-muted small">{{ _("Cancelled") }}</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-6 col-md-3 mb-3">
+				<div class="card ds-card h-100">
+					<div class="card-body">
+						<div class="ds-stat-icon ds-bg-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg></div>
+						<div class="ds-stat" id="l-noshow">—</div>
+						<div class="text-muted small">{{ _("No Show") }}</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
 		<div class="card ds-card mb-4">
 			<div class="card-header bg-white"><strong>{{ _("Upcoming Lessons") }}</strong></div>
-			<ul class="list-group list-group-flush" id="upcoming-list"></ul>
+			<div class="card-body py-2">
+				<div class="ds-lesson-list" id="upcoming-list"></div>
+			</div>
 		</div>
 
 		<div class="card ds-card">
 			<div class="card-header bg-white"><strong>{{ _("Past Lessons") }}</strong></div>
-			<ul class="list-group list-group-flush" id="past-list"></ul>
+			<div class="card-body py-2">
+				<div class="ds-lesson-list" id="past-list"></div>
+			</div>
 		</div>
 	{% endif %}
 </div>
