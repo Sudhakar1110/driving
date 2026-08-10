@@ -5,7 +5,7 @@ import re
 
 import frappe
 from frappe import _
-from frappe.utils import add_days, cint, getdate, nowdate, validate_email_address
+from frappe.utils import add_days, cint, flt, getdate, nowdate, validate_email_address
 
 from driving_school.utils import (
 	get_demo_learner,
@@ -116,8 +116,12 @@ def get_learner_summary():
 	completed = frappe.db.count("Lesson Booking", {"learner": learner, "status": "Completed"})
 	no_shows = frappe.db.count("Lesson Booking", {"learner": learner, "status": "No Show"})
 
+	# Per-lesson fee shown on the booking page when the learner has no package.
+	default_lesson_fee = flt(frappe.get_single("Driving School Settings").default_lesson_fee)
+
 	return {
 		"upcoming_count": upcoming_count,
+		"default_lesson_fee": default_lesson_fee,
 		"learner": {
 			"name": learner,
 			"learner_name": doc.learner_name,
@@ -362,6 +366,9 @@ def book_lesson(lesson_date, start_time, instructor, vehicle, package=None, rema
 	settings = frappe.get_single("Driving School Settings")
 	status = "Confirmed" if cint(settings.auto_confirm_portal_bookings) else "Requested"
 
+	# Package-less bookings are allowed: apply the configured per-lesson fee.
+	lesson_fee = flt(settings.default_lesson_fee) if not package else 0
+
 	doc = frappe.get_doc(
 		{
 			"doctype": "Lesson Booking",
@@ -372,6 +379,7 @@ def book_lesson(lesson_date, start_time, instructor, vehicle, package=None, rema
 			"lesson_date": lesson_date,
 			"start_time": start_time,
 			"status": status,
+			"lesson_fee": lesson_fee,
 			"remarks": remarks or "",
 		}
 	)

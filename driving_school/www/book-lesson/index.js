@@ -14,18 +14,60 @@ frappe.ready(() => {
 					showMsg("Could not load your account. Please try again.", "danger");
 					return;
 				}
-				const pkg = r.message && r.message.active_package;
-				// Booking requires an active package with a fully paid balance -
-				// otherwise show the warning banner instead of the booking form.
+				const msg = r.message || {};
+				const pkg = msg.active_package;
+				state.package = null;
+				$("#pkg-label").text("—");
+				$("#pkg-note").text("");
+
 				if (pkg && Number(pkg.balance_amount || 0) <= 0) {
+					// Fully paid active package -> book against it.
 					state.package = pkg.name;
 					$("#pkg-label").text(pkg.package_name);
-					$("#booking-form").show();
+					$("#pkg-note").text(__("Lessons are counted against your package."));
+					$("#no-package").hide();
+				} else if (pkg) {
+					// Active package with an outstanding balance -> booking allowed.
+					$("#pkg-label").text(pkg.package_name);
+					$("#np-title").text(__("Book now - pay your balance later"));
+					$("#np-text").html(
+						__("Your package has an outstanding balance of") +
+							" <strong>" +
+							fmtMoney(pkg.balance_amount) +
+							"</strong>. " +
+							__("You can still book lessons and clear the balance from") +
+							" <a href='/my-payments'>" +
+							__("My Payments") +
+							"</a>."
+					);
+					$("#no-package").show();
 				} else {
+					// No package at all -> book per-lesson.
+					$("#pkg-label").text(__("Pay per lesson"));
+					$("#np-title").text(__("Booking without a package"));
+					$("#np-text").html(
+						(msg.default_lesson_fee
+							? __("You will be charged the per-lesson fee of") +
+								" <strong>" +
+								fmtMoney(msg.default_lesson_fee) +
+								"</strong>."
+							: __("This lesson will be billed per-lesson by the school.")) +
+							" " +
+							__("Want a package?") +
+							" <a href='/my-payments'>" +
+							__("My Payments") +
+							"</a>."
+					);
 					$("#no-package").show();
 				}
+				$("#booking-form").show();
 			},
 		});
+	}
+
+	function fmtMoney(v) {
+		const n = Number(v || 0);
+		return n.toLocaleString(undefined, { style: "currency", currency: "USD" });
 	}
 
 	function loadResources() {

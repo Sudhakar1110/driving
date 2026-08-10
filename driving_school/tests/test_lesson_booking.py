@@ -120,6 +120,16 @@ class TestLessonBookingRules(IntegrationTestCase):
 			}
 		).insert(ignore_permissions=True)
 
+	def test_book_without_package_succeeds(self):
+		"""Learners without a package can still book (per-lesson billing)."""
+		set_limits(max_per_week=10, min_gap=0)
+		result = book_lesson(
+			add_days(nowdate(), 3), "09:00:00", self.instructor.name, self.vehicle.name
+		)
+		doc = frappe.get_doc("Lesson Booking", result["name"])
+		self.assertIsNone(doc.package)
+		self.assertIsNotNone(doc.lesson_fee)  # per-lesson fee applied
+
 	def test_logged_in_user_gets_own_auto_created_learner(self):
 		"""A logged-in user without a profile gets their own auto-created learner -
 		never the demo learner - so the portal works without manual linking."""

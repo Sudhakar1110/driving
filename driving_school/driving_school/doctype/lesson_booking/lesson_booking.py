@@ -93,7 +93,9 @@ class LessonBooking(Document):
 			if not self.lesson_fee:
 				self.lesson_fee = 0
 		else:
-			if not self.lesson_fee:
+			# Package-less bookings are allowed (per-lesson billing). The fee may
+			# be explicitly zero, so only reject when it was never provided at all.
+			if self.lesson_fee is None:
 				frappe.throw(_("Please select a Learner Package or enter a Lesson Fee."))
 
 	def validate_schedule_rules(self):

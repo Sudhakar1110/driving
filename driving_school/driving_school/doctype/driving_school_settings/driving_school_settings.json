@@ -16,6 +16,7 @@
   "business_end_time",
   "section_booking",
   "lesson_duration_minutes",
+  "default_lesson_fee",
   "auto_confirm_portal_bookings",
   "column_break_booking",
   "max_lessons_per_week",
@@ -92,6 +93,13 @@
    "fieldname": "lesson_duration_minutes",
    "fieldtype": "Int",
    "label": "Lesson Duration (minutes)"
+  },
+  {
+   "default": 0,
+   "description": "Per-lesson fee applied when a booking is made without a package (0 = school bills later).",
+   "fieldname": "default_lesson_fee",
+   "fieldtype": "Currency",
+   "label": "Default Per-Lesson Fee"
   },
   {
    "default": 1,

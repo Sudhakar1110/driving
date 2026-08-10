@@ -12,17 +12,17 @@
 		<p class="text-muted">{{ _("Pick a date, instructor, vehicle and an available time slot.") }}</p>
 		<div id="ds-msg"></div>
 
-		<div id="no-package" class="alert alert-warning" style="display:none">
-			{{ _("You do not have an active package with a zero balance. Please pay your package balance first from") }}
-			<a href="/my-payments">{{ _("My Payments") }}</a>.
-		</div>
-
 		<div id="booking-form" style="display:none">
+			<div id="no-package" class="alert alert-info" style="display:none">
+				<strong id="np-title"></strong>
+				<div id="np-text" class="mt-1"></div>
+			</div>
+
 			<div class="card ds-card mb-4">
 				<div class="card-header bg-white"><strong>{{ _("Package") }}</strong></div>
 				<div class="card-body">
 					<span class="badge badge-primary" id="pkg-label">—</span>
-					<span class="text-muted ml-2">{{ _("Lessons are counted against your package.") }}</span>
+					<span class="text-muted ml-2" id="pkg-note"></span>
 				</div>
 			</div>
 
