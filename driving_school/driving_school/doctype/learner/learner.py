@@ -62,6 +62,7 @@ class Learner(Document):
 			user.email = self.email
 			user.first_name = self.learner_name
 			user.send_welcome_email = False
+			user.home_page = "/portal-home"
 			user.append("roles", {"role": "Learner"})
 			try:
 				user.insert(ignore_permissions=True)
@@ -73,6 +74,13 @@ class Learner(Document):
 			self.db_set("user", self.email)
 
 	def add_learner_role(self, user):
+		"""Ensure the user has the Learner role and lands on the portal after login."""
+		changed = False
 		if not any(r.role == "Learner" for r in user.roles):
 			user.append("roles", {"role": "Learner"})
+			changed = True
+		if not user.home_page:
+			user.home_page = "/portal-home"
+			changed = True
+		if changed:
 			user.save(ignore_permissions=True)

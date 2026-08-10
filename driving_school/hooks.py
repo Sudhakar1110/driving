@@ -11,6 +11,7 @@ app_license = "mit"
 
 # Install / uninstall / migrate
 before_migrate = "driving_school.install.before_migrate"
+after_migrate = "driving_school.install.after_migrate"
 after_install = "driving_school.install.after_install"
 before_uninstall = "driving_school.install.before_uninstall"
 

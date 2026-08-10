@@ -33,6 +33,11 @@ frappe.ready(() => {
 					);
 					return;
 				}
+				if (r.message && r.message.logged_in) {
+					// Auto-logged in - go straight to the learner portal.
+					window.location.href = "/portal-home";
+					return;
+				}
 				$("#reg-form").hide();
 				$("#reg-done").show();
 				$("#r-done-text").text(

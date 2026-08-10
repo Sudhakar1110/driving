@@ -653,6 +653,7 @@ def register_learner(full_name, mobile_number, email, category, password=None, c
 				"first_name": full_name,
 				"new_password": password,
 				"send_welcome_email": False,
+				"home_page": "/portal-home",
 				"roles": [{"role": "Learner"}],
 			}
 		)
@@ -676,7 +677,21 @@ def register_learner(full_name, mobile_number, email, category, password=None, c
 		}
 	)
 	learner.insert(ignore_permissions=True)
-	return {"name": learner.name, "learner_name": learner.learner_name}
+
+	# Log the new learner in immediately so they land on the portal, not the desk.
+	# Skipped under the test runner: login_as commits the transaction, which
+	# would break IntegrationTestCase rollback isolation.
+	logged_in = False
+	if password and not frappe.flags.in_test:
+		try:
+			from frappe.sessions import LoginManager
+
+			LoginManager().login_as(email)
+			logged_in = True
+		except Exception:
+			frappe.log_error(frappe.get_traceback(), "Driving School: auto-login after registration failed")
+
+	return {"name": learner.name, "learner_name": learner.learner_name, "logged_in": logged_in}
 
 
 # ---------------------------------------------------------------- instructor portal

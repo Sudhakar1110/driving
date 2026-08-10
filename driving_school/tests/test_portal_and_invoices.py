@@ -40,6 +40,8 @@ class TestPublicForms(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("User", email))
 		user = frappe.get_doc("User", email)
 		self.assertTrue(any(r.role == "Learner" for r in user.roles))
+		# Portal home page so learners never land on the desk after login
+		self.assertEqual(frappe.db.get_value("User", email, "home_page"), "/portal-home")
 
 	def test_register_learner_requires_valid_email(self):
 		with self.assertRaises(frappe.ValidationError):

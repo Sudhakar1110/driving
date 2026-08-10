@@ -100,6 +100,14 @@ def after_install():
 	set_learner_home_page()
 
 
+def after_migrate():
+	"""Re-assert role-based home pages after every migrate (self-healing)."""
+	try:
+		set_learner_home_page()
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), "Driving School: home page update failed (after_migrate)")
+
+
 def before_uninstall():
 	delete_roles()
 
