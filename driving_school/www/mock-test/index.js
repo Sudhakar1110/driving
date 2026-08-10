@@ -78,30 +78,64 @@ frappe.ready(() => {
 			return;
 		}
 
-		$("#submit-btn").prop("disabled", true).text(__("Submitting..."));
-
-		let timedOut = false;
+		setSubmitting(true);
+		let finished = false;
+		// Safety net: if the server never responds at all, recover the button.
 		const timer = setTimeout(() => {
-			timedOut = true;
-			$("#submit-btn").prop("disabled", false).text(__("Submit Test"));
-			showMsg(__("The server took too long to respond. Please try again."), "danger");
-		}, 25000);
+			if (finished) return;
+			finished = true;
+			setSubmitting(false);
+			showMsg(__("The server did not respond in time. Please try again."), "danger");
+		}, 20000);
 
 		frappe.call({
 			method: "driving_school.api.submit_mock_test",
 			args: { category: $("#category").val(), answers: answers },
 			callback: (r) => {
+				if (finished) return;
+				finished = true;
 				clearTimeout(timer);
-				if (timedOut) return;
-				$("#submit-btn").prop("disabled", false).text(__("Submit Test"));
+				setSubmitting(false);
 				if (r.exc || !r.message) {
 					showMsg(getErrorMsg(r), "danger");
 					return;
 				}
 				renderResults(r.message);
 			},
+			error: (xhr, status, err) => {
+				// Hard server error (e.g. an HTML 500) never reaches the callback -
+				// surface it here instead of leaving the button stuck.
+				if (finished) return;
+				finished = true;
+				clearTimeout(timer);
+				setSubmitting(false);
+				showMsg(getHardErrorMsg(xhr), "danger");
+			},
 		});
 	});
+
+	function setSubmitting(on) {
+		$("#submit-btn")
+			.prop("disabled", on)
+			.html(
+				on
+					? '<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span>' +
+						__("Submitting…")
+					: __("Submit Test")
+			);
+	}
+
+	function getHardErrorMsg(xhr) {
+		let msg = __("The server could not save your test. Please try again or contact the school.");
+		try {
+			if (xhr && xhr.responseText) {
+				// Pull the traceback out of a developer-mode HTML error page.
+				const m = xhr.responseText.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
+				msg += "<br><small>" + (m ? m[1] : xhr.responseText).slice(0, 400) + "</small>";
+			}
+		} catch (e) {}
+		return msg;
+	}
 
 	function getErrorMsg(r) {
 		let msg = __("Submission failed. Please try again.");

@@ -638,55 +638,76 @@ def get_mock_questions(category, count=10):
 
 @frappe.whitelist()
 def submit_mock_test(category, answers):
-	"""Score a mock test submission server-side."""
-	learner = _get_learner()
-	settings = frappe.get_single("Driving School Settings")
-	pass_percent = cint(settings.mock_test_pass_percentage) or 60
+	"""Score a mock test submission server-side.
 
-	attempt = frappe.get_doc(
-		{
-			"doctype": "Mock Test Attempt",
-			"learner": learner,
-			"category": category,
-			"pass_percentage": pass_percent,
-		}
-	)
+	The whole flow is guarded so a failure always returns a clean JSON error
+	(nothing that could leave the portal's submit button hanging), and the
+	failure log records which step was reached for diagnosis.
+	"""
+	import time
 
-	for answer in answers or []:
-		attempt.append(
-			"answers",
-			{
-				"question": answer.get("question"),
-				"selected_answer": answer.get("selected_answer"),
-			},
-		)
+	start = time.time()
+	steps = []
+
+	def _mark(step):
+		steps.append("{} {:.1f}s".format(step, time.time() - start))
 
 	try:
+		learner = _get_learner()
+		_mark("learner")
+
+		settings = frappe.get_single("Driving School Settings")
+		pass_percent = cint(settings.mock_test_pass_percentage) or 60
+
+		attempt = frappe.get_doc(
+			{
+				"doctype": "Mock Test Attempt",
+				"learner": learner,
+				"category": category,
+				"pass_percentage": pass_percent,
+			}
+		)
+
+		for answer in answers or []:
+			attempt.append(
+				"answers",
+				{
+					"question": answer.get("question"),
+					"selected_answer": answer.get("selected_answer"),
+				},
+			)
+		_mark("built")
+
 		attempt.insert(ignore_permissions=True)
+		_mark("inserted")
+
+		result = {
+			"name": attempt.name,
+			"result": attempt.result,
+			"score_percent": attempt.score_percent,
+			"correct_answers": attempt.correct_answers,
+			"total_questions": attempt.total_questions,
+			"pass_percentage": attempt.pass_percentage,
+			"answers": [
+				{
+					"question": a.question_text,
+					"selected_answer": a.selected_answer,
+					"correct_answer": a.correct_answer,
+					"is_correct": a.is_correct,
+				}
+				for a in attempt.answers
+			],
+		}
+		_mark("done")
+		return result
 	except frappe.ValidationError:
-		# Surface the real server-side validation message to the learner
 		raise
 	except Exception:
-		frappe.log_error(frappe.get_traceback(), "Driving School: mock test submit failed")
+		frappe.log_error(
+			"steps: " + " -> ".join(steps) + "\n" + frappe.get_traceback(),
+			"Driving School: mock test submit failed",
+		)
 		frappe.throw(_("Could not save your test attempt. Please try again."))
-
-	return {
-		"name": attempt.name,
-		"result": attempt.result,
-		"score_percent": attempt.score_percent,
-		"correct_answers": attempt.correct_answers,
-		"total_questions": attempt.total_questions,
-		"pass_percentage": attempt.pass_percentage,
-		"answers": [
-			{
-				"question": a.question_text,
-				"selected_answer": a.selected_answer,
-				"correct_answer": a.correct_answer,
-				"is_correct": a.is_correct,
-			}
-			for a in attempt.answers
-		],
-	}
 
 
 # ---------------------------------------------------------------- feedback
