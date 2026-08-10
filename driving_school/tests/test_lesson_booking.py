@@ -16,10 +16,17 @@ from driving_school.tests.helpers import (
 
 class TestLessonBookingRules(IntegrationTestCase):
 	def setUp(self):
+		# The API demo fallback only applies to Guest, so run the API as Guest
+		# (in a fresh test DB the first Learner is the one created here).
+		frappe.set_user("Guest")
 		self.learner = make_learner("Booking Test Learner")
 		self.instructor = make_instructor(["Car"])
 		self.vehicle = make_vehicle()
 		self.package = make_package(self.learner)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		super().tearDown()
 
 	def _book(self, day, time="09:00:00"):
 		return book_lesson(
@@ -112,3 +119,10 @@ class TestLessonBookingRules(IntegrationTestCase):
 				"lesson_fee": 100,
 			}
 		).insert(ignore_permissions=True)
+
+	def test_logged_in_user_without_profile_cannot_use_demo_learner(self):
+		"""Staff without a linked Learner profile must not act on the demo learner."""
+		set_limits(max_per_week=10, min_gap=0)
+		frappe.set_user("Administrator")
+		with self.assertRaises(frappe.PermissionError):
+			self._book(add_days(nowdate(), 3))

@@ -6,21 +6,30 @@ import frappe
 from frappe import _
 from frappe.utils import cint, getdate, nowdate
 
-from driving_school.utils import get_learner_for_user, to_time
+from driving_school.utils import get_demo_learner, get_learner_for_user, to_time
 
 ACTIVE_BOOKING_STATUSES = ["Requested", "Confirmed", "On Waitlist"]
 
 
 def _get_learner():
-	"""Learner for the current request - own profile when logged in, otherwise
-	the demo learner (first Learner on file) so the portal works without login."""
+	"""Learner for the current request.
+
+	Logged-in users see their own linked Learner profile. The demo fallback
+	(first Learner on file) applies only to anonymous visitors (Guest) so the
+	portal works without login; logged-in users without a Learner profile are
+	rejected instead of silently acting on the demo learner's account.
+	"""
 	user = frappe.session.user
 	if user and user != "Guest":
 		name = get_learner_for_user(user)
 		if name:
 			return name
+		frappe.throw(
+			_("Your user account is not linked to a Learner profile. Please contact the school."),
+			frappe.PermissionError,
+		)
 
-	name = frappe.db.get_value("Learner", {}, "name", order_by="creation asc")
+	name = get_demo_learner()
 	if name:
 		return name
 

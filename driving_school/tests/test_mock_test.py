@@ -26,7 +26,13 @@ def make_question(category="Car"):
 
 class TestMockTest(IntegrationTestCase):
 	def setUp(self):
+		# The API demo fallback only applies to Guest, so run the API as Guest.
+		frappe.set_user("Guest")
 		self.learner = make_learner("Mock Test Learner")
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		super().tearDown()
 
 	def test_questions_do_not_expose_answer(self):
 		make_question()

@@ -23,22 +23,33 @@ def get_learner_for_user(user=None):
 	return name
 
 
+def get_demo_learner():
+	"""First Learner on file - the public demo identity.
+
+	This fallback is reserved for anonymous (Guest) visitors only; logged-in
+	users are never resolved through it.
+	"""
+	return frappe.db.get_value("Learner", {}, "name", order_by="creation asc")
+
+
 def get_learner_for_context():
 	"""Learner for the current request (public demo mode).
 
-	Logged-in users with a linked Learner profile see their own data.
-	Everyone else - guests or users without a profile - falls back to the
-	first Learner on file, so the portal is publicly viewable without any
-	login. Returns ``(learner_name, learner_display_name)`` or ``(None, None)``
-	when there are no learners in the system yet.
+	Logged-in users only ever see their own linked Learner profile. The demo
+	fallback - the first Learner on file - applies ONLY to anonymous visitors
+	(Guest), so logged-in staff can never operate on the demo learner's
+	account. Returns ``(learner_name, learner_display_name)`` or ``(None, None)``
+	when there is no learner to show.
 	"""
 	user = frappe.session.user
 	if user and user != "Guest":
 		name = get_learner_for_user(user)
 		if name:
 			return name, frappe.db.get_value("Learner", name, "learner_name")
+		return None, None
 
-	name = frappe.db.get_value("Learner", {}, "name", order_by="creation asc")
+	# Anonymous visitor -> public demo mode
+	name = get_demo_learner()
 	if name:
 		return name, frappe.db.get_value("Learner", name, "learner_name")
 	return None, None
