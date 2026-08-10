@@ -61,7 +61,8 @@ def _resolve_bookings(bookings):
 
 # ---------------------------------------------------------------- summary & resources
 
-@frappe.whitelist()
+# Frappe v15.100+ requires allow_guest=True for Guest (public demo) access.
+@frappe.whitelist(allow_guest=True)
 def get_learner_summary():
 	learner = _get_learner()
 	doc = frappe.get_cached_doc("Learner", learner)
@@ -138,7 +139,7 @@ def get_learner_summary():
 	}
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_resources():
 	"""Active instructors and vehicles for the booking form.
 
@@ -178,7 +179,7 @@ def get_resources():
 
 # ---------------------------------------------------------------- schedules
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_class_schedules(days=7):
 	"""Public timetable: upcoming theory classes and daily lesson availability.
 
@@ -282,7 +283,10 @@ def get_class_schedules(days=7):
 
 # ---------------------------------------------------------------- booking
 
-@frappe.whitelist()
+# NOTE: guests (public demo mode) can also write here - bookings/cancellations
+# operate on the demo learner (first record) via _get_learner(). This is the
+# intended public-demo behaviour; revisit if the site moves out of demo mode.
+@frappe.whitelist(allow_guest=True)
 def get_available_slots(lesson_date, instructor=None, vehicle=None):
 	"""Return business-hour slots with availability for the logged-in learner."""
 	learner = _get_learner()
@@ -354,7 +358,7 @@ def get_available_slots(lesson_date, instructor=None, vehicle=None):
 	return slots
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def book_lesson(lesson_date, start_time, instructor, vehicle, package=None, remarks=None):
 	learner = _get_learner()
 
@@ -387,7 +391,7 @@ def book_lesson(lesson_date, start_time, instructor, vehicle, package=None, rema
 	return {"name": doc.name, "status": doc.status}
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def cancel_lesson(lesson_booking):
 	learner = _get_learner()
 	doc = frappe.get_doc("Lesson Booking", lesson_booking)
@@ -408,7 +412,7 @@ def cancel_lesson(lesson_booking):
 	}
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def reschedule_lesson(lesson_booking, lesson_date, start_time, instructor=None, vehicle=None):
 	learner = _get_learner()
 	doc = frappe.get_doc("Lesson Booking", lesson_booking)
@@ -432,7 +436,7 @@ def reschedule_lesson(lesson_booking, lesson_date, start_time, instructor=None, 
 
 # ---------------------------------------------------------------- lessons & payments
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_my_lessons():
 	learner = _get_learner()
 	fields = [
@@ -477,7 +481,7 @@ def get_my_lessons():
 	return {"upcoming": upcoming, "past": past}
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_my_payments():
 	learner = _get_learner()
 
@@ -521,7 +525,7 @@ def get_my_payments():
 	}
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def request_payment(package, amount, mode_of_payment, reference_number=None):
 	learner = _get_learner()
 
@@ -547,7 +551,7 @@ def request_payment(package, amount, mode_of_payment, reference_number=None):
 
 # ---------------------------------------------------------------- progress & tests
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_my_progress():
 	learner = _get_learner()
 	doc = frappe.get_cached_doc("Learner", learner)
@@ -628,7 +632,7 @@ def get_my_progress():
 	}
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_mock_questions(category, count=10):
 	"""Return random active questions WITHOUT exposing correct answers."""
 	_get_learner()
@@ -644,7 +648,7 @@ def get_mock_questions(category, count=10):
 	return questions
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def submit_mock_test(category, answers):
 	"""Score a mock test submission server-side.
 
@@ -720,7 +724,7 @@ def submit_mock_test(category, answers):
 
 # ---------------------------------------------------------------- feedback
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def submit_feedback(instructor, lesson=None, rating=5, comments=None):
 	learner = _get_learner()
 
@@ -748,7 +752,7 @@ def submit_feedback(instructor, lesson=None, rating=5, comments=None):
 _VALID_CATEGORIES = {"Car", "Motorcycle", "Heavy Vehicle", "Bus", "Other"}
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def submit_enquiry(full_name, mobile_number, category, email=None, message=None):
 	"""Public lead-capture form - creates an Enquiry (status New)."""
 	full_name = (full_name or "").strip()
@@ -776,7 +780,9 @@ def submit_enquiry(full_name, mobile_number, category, email=None, message=None)
 	return {"name": doc.name, "status": doc.status}
 
 
-@frappe.whitelist()
+# xss_safe: guests' form_dict is HTML-escaped otherwise, which would corrupt the
+# password (e.g. one containing '&') before it reaches this function.
+@frappe.whitelist(allow_guest=True, xss_safe=True)
 def register_learner(full_name, mobile_number, email, category, password=None, city=None, address=None):
 	"""Public self-registration - creates a Learner (and portal user when a password is given)."""
 	full_name = (full_name or "").strip()

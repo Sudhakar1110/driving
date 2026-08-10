@@ -50,6 +50,43 @@ class TestPublicForms(IntegrationTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			register_learner("Bad Email", "9812345678", "not-an-email", "Car")
 
+	def test_portal_api_methods_are_guest_accessible(self):
+		"""Regression: Frappe v15.100+ only lets Guests call methods marked
+		allow_guest=True - without it every portal API 403s in public demo mode
+		(e.g. empty time-slot grid, register button, mock test submit)."""
+		import driving_school.api as api
+
+		for name in (
+			"get_learner_summary",
+			"get_resources",
+			"get_available_slots",
+			"book_lesson",
+			"cancel_lesson",
+			"reschedule_lesson",
+			"get_my_lessons",
+			"get_my_payments",
+			"request_payment",
+			"get_my_progress",
+			"get_mock_questions",
+			"submit_mock_test",
+			"submit_feedback",
+			"submit_enquiry",
+			"register_learner",
+			"get_class_schedules",
+		):
+			self.assertIn(
+				getattr(api, name),
+				frappe.guest_methods,
+				"{0} must be guest-accessible (allow_guest=True)".format(name),
+			)
+
+	def test_instructor_apis_are_not_guest_accessible(self):
+		"""Instructor-only methods must stay login-gated."""
+		import driving_school.api as api
+
+		for name in ("get_instructor_dashboard", "update_lesson_status", "request_instructor_leave"):
+			self.assertNotIn(getattr(api, name), frappe.guest_methods)
+
 	def test_logged_in_user_auto_creates_learner_profile(self):
 		"""No manual linking needed: the portal creates a Learner for the user."""
 		frappe.set_user("Administrator")
