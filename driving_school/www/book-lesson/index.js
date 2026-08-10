@@ -15,7 +15,9 @@ frappe.ready(() => {
 					return;
 				}
 				const pkg = r.message && r.message.active_package;
-				if (pkg) {
+				// Booking requires an active package with a fully paid balance -
+				// otherwise show the warning banner instead of the booking form.
+				if (pkg && Number(pkg.balance_amount || 0) <= 0) {
 					state.package = pkg.name;
 					$("#pkg-label").text(pkg.package_name);
 					$("#booking-form").show();

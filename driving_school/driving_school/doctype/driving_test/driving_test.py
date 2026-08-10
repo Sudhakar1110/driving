@@ -34,6 +34,9 @@ class DrivingTest(Document):
 					learner.training_stage = "Theory"
 					learner.save(ignore_permissions=True)
 		elif self.result == "Fail" and self.test_type == "Driving":
-			if learner.status == "Test Ready":
-				learner.status = "In Training"
+			# "Test Ready" is recorded on training_stage when a package is
+			# completed (lesson_booking.handle_completion); send the learner
+			# back to practical training after a failed driving test.
+			if learner.training_stage == "Test Ready":
+				learner.training_stage = "Practical"
 				learner.save(ignore_permissions=True)

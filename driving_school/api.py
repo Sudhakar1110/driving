@@ -454,6 +454,7 @@ def get_mock_questions(category, count=10):
 		"Mock Test Question",
 		filters={"is_active": 1, "category": category},
 		fields=["name", "question", "option_a", "option_b", "option_c", "option_d", "topic", "marks"],
+		order_by="rand()",
 		limit_page_length=count,
 	)
 	return questions
@@ -486,6 +487,9 @@ def submit_mock_test(category, answers):
 
 	try:
 		attempt.insert(ignore_permissions=True)
+	except frappe.ValidationError:
+		# Surface the real server-side validation message to the learner
+		raise
 	except Exception:
 		frappe.log_error(frappe.get_traceback(), "Driving School: mock test submit failed")
 		frappe.throw(_("Could not save your test attempt. Please try again."))

@@ -31,8 +31,7 @@ def execute(filters=None):
 		select i.name as instructor, i.instructor_name,
 			(select count(*) from `tabLesson Booking` lbx where lbx.instructor = i.name and {conditions}) as total_lessons,
 			(select count(*) from `tabLesson Booking` lbx where lbx.instructor = i.name and lbx.status = 'Completed' and {conditions}) as completed,
-			(select count(*) from `tabLesson Booking` lbx where lbx.instructor = i.name and lbx.status = 'No Show' and {conditions}) as no_shows,
-			(select round(avg(rating), 1) from `tabLearner Feedback` f where f.instructor = i.name) as avg_rating
+			(select count(*) from `tabLesson Booking` lbx where lbx.instructor = i.name and lbx.status = 'No Show' and {conditions}) as no_shows
 		from `tabDriving Instructor` i
 		order by i.instructor_name asc
 		""".format(conditions=conditions),
@@ -40,19 +39,48 @@ def execute(filters=None):
 		as_dict=1,
 	)
 
+	# Ratings - filtered by the linked lesson's date so From/To apply consistently
+	rating_conditions = "1=1"
+	if filters.get("from_date"):
+		rating_conditions += " and fb.lesson_date >= %(from_date)s"
+	if filters.get("to_date"):
+		rating_conditions += " and fb.lesson_date <= %(to_date)s"
+
+	ratings = frappe.db.sql(
+		"""
+		select f.instructor, round(avg(f.rating), 1) as avg_rating
+		from `tabLearner Feedback` f
+		left join `tabLesson Booking` fb on fb.name = f.lesson
+		where f.instructor is not null and {rating_conditions}
+		group by f.instructor
+		""".format(rating_conditions=rating_conditions),
+		params,
+		as_dict=1,
+	)
+	rating_map = {row["instructor"]: row["avg_rating"] for row in ratings}
+
+	# Tests passed - filtered by test date so From/To apply consistently
+	test_conditions = "result = 'Pass' and instructor is not null"
+	if filters.get("from_date"):
+		test_conditions += " and test_date >= %(from_date)s"
+	if filters.get("to_date"):
+		test_conditions += " and test_date <= %(to_date)s"
+
 	passed = frappe.db.sql(
 		"""
 		select instructor, count(name) as tests_passed
 		from `tabDriving Test`
-		where result = 'Pass' and instructor is not null
+		where {test_conditions}
 		group by instructor
-		""",
+		""".format(test_conditions=test_conditions),
+		params,
 		as_dict=1,
 	)
 	passed_map = {row["instructor"]: row["tests_passed"] for row in passed}
 
 	for row in rows:
 		row["tests_passed"] = passed_map.get(row["instructor"], 0)
+		row["avg_rating"] = rating_map.get(row["instructor"], 0)
 		row["total_lessons"] = row["total_lessons"] or 0
 		row["completed"] = row["completed"] or 0
 		row["no_shows"] = row["no_shows"] or 0
