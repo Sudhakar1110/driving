@@ -25,6 +25,12 @@ def execute(filters=None):
 	if filters.get("to_date"):
 		conditions += " and lbx.lesson_date <= %(to_date)s"
 		params["to_date"] = filters.get("to_date")
+	if filters.get("branch"):
+		conditions += (
+			" and exists (select 1 from `tabLearner` lx"
+			" where lx.name = lbx.learner and lx.branch = %(branch)s)"
+		)
+		params["branch"] = filters.get("branch")
 
 	rows = frappe.db.sql(
 		"""
@@ -45,6 +51,11 @@ def execute(filters=None):
 		rating_conditions += " and fb.lesson_date >= %(from_date)s"
 	if filters.get("to_date"):
 		rating_conditions += " and fb.lesson_date <= %(to_date)s"
+	if filters.get("branch"):
+		rating_conditions += (
+			" and exists (select 1 from `tabLearner` lx"
+			" where lx.name = fb.learner and lx.branch = %(branch)s)"
+		)
 
 	ratings = frappe.db.sql(
 		"""
@@ -60,18 +71,23 @@ def execute(filters=None):
 	rating_map = {row["instructor"]: row["avg_rating"] for row in ratings}
 
 	# Tests passed - filtered by test date so From/To apply consistently
-	test_conditions = "result = 'Pass' and instructor is not null"
+	test_conditions = "t.result = 'Pass' and t.instructor is not null"
 	if filters.get("from_date"):
-		test_conditions += " and test_date >= %(from_date)s"
+		test_conditions += " and t.test_date >= %(from_date)s"
 	if filters.get("to_date"):
-		test_conditions += " and test_date <= %(to_date)s"
+		test_conditions += " and t.test_date <= %(to_date)s"
+	if filters.get("branch"):
+		test_conditions += (
+			" and exists (select 1 from `tabLearner` lx"
+			" where lx.name = t.learner and lx.branch = %(branch)s)"
+		)
 
 	passed = frappe.db.sql(
 		"""
-		select instructor, count(name) as tests_passed
-		from `tabDriving Test`
+		select t.instructor, count(t.name) as tests_passed
+		from `tabDriving Test` t
 		where {test_conditions}
-		group by instructor
+		group by t.instructor
 		""".format(test_conditions=test_conditions),
 		params,
 		as_dict=1,

@@ -15,5 +15,11 @@ frappe.query_reports["Vehicle Utilization"] = {
 			"fieldtype": "Date",
 			"default": frappe.datetime.get_today(),
 		},
+		{
+			"fieldname": "branch",
+			"label": __("Branch"),
+			"fieldtype": "Link",
+			"options": "Driving School Branch",
+		},
 	],
 };

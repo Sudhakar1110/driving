@@ -25,6 +25,12 @@ def execute(filters=None):
 	if filters.get("to_date"):
 		conditions += " and lb.lesson_date <= %(to_date)s"
 		params["to_date"] = filters.get("to_date")
+	if filters.get("branch"):
+		conditions += (
+			" and exists (select 1 from `tabLearner` lx"
+			" where lx.name = lb.learner and lx.branch = %(branch)s)"
+		)
+		params["branch"] = filters.get("branch")
 
 	data = frappe.db.sql(
 		"""

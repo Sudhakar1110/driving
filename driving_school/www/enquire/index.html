@@ -1,0 +1,61 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Enquire About Driving Lessons") }}{% endblock %}
+
+{% block page_content %}
+<div class="container my-4" style="max-width: 720px;">
+	<div class="text-center mb-4">
+		<div class="mb-2"><i class="fa fa-graduation-cap fa-3x text-primary"></i></div>
+		<h3>{{ _("Learn to Drive with Us") }}</h3>
+		<p class="text-muted">{{ _("Leave your details and our team will call you back.") }}</p>
+	</div>
+
+	<div id="ds-msg"></div>
+
+	<div class="card ds-card" id="enquire-form">
+		<div class="card-body">
+			<div class="row">
+				<div class="col-md-6 form-group">
+					<label>{{ _("Full Name") }} *</label>
+					<input type="text" class="form-control" id="e-name" placeholder="{{ _('Your name') }}">
+				</div>
+				<div class="col-md-6 form-group">
+					<label>{{ _("Mobile Number") }} *</label>
+					<input type="text" class="form-control" id="e-mobile" placeholder="{{ _('10-digit mobile number') }}">
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-6 form-group">
+					<label>{{ _("Email") }}</label>
+					<input type="email" class="form-control" id="e-email" placeholder="{{ _('Optional') }}">
+				</div>
+				<div class="col-md-6 form-group">
+					<label>{{ _("License Category") }}</label>
+					<select class="form-control" id="e-category">
+						<option value="Car" selected>Car</option>
+						<option value="Motorcycle">Motorcycle</option>
+						<option value="Heavy Vehicle">Heavy Vehicle</option>
+						<option value="Bus">Bus</option>
+						<option value="Other">Other</option>
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label>{{ _("Message") }}</label>
+				<textarea class="form-control" id="e-message" rows="3" placeholder="{{ _('Anything you would like us to know') }}"></textarea>
+			</div>
+			<button class="btn btn-primary btn-block btn-lg" id="e-submit">{{ _("Submit Enquiry") }}</button>
+		</div>
+	</div>
+
+	<div class="card ds-card text-center" id="enquire-done" style="display:none">
+		<div class="card-body py-5">
+			<h1 class="mb-3">🎉</h1>
+			<h4 class="mb-2" id="e-done-ref"></h4>
+			<p class="text-muted mb-4">{{ _("Our team will contact you shortly.") }}</p>
+			<a class="btn btn-outline-primary" href="/enquire">{{ _("Submit Another Enquiry") }}</a>
+			<a class="btn btn-outline-secondary" href="/register">{{ _("Register as a Learner") }}</a>
+		</div>
+	</div>
+</div>
+{% endblock %}

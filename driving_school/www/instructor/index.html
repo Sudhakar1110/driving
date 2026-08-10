@@ -1,0 +1,101 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Instructor Dashboard") }}{% endblock %}
+
+{% block page_content %}
+<div class="container my-4" style="max-width: 960px;">
+	{% if not instructor %}
+		<div class="text-center py-5">
+			<div class="mb-3"><i class="fa fa-id-card fa-4x text-muted"></i></div>
+			<h4>{{ _("No instructor account linked") }}</h4>
+			<p class="text-muted">{{ _("Log in with an account linked to a Driving Instructor record to see your dashboard.") }}</p>
+			{% if is_guest %}
+				<a class="btn btn-primary" href="/login">{{ _("Log In") }}</a>
+			{% endif %}
+		</div>
+	{% else %}
+		<div class="d-flex justify-content-between align-items-center mb-3">
+			<div>
+				<h4 class="mb-0">{{ _("Instructor Dashboard") }}</h4>
+				<p class="text-muted mb-0 small">{{ _("View today's lessons, update statuses and manage leave.") }}</p>
+			</div>
+			<a class="btn btn-outline-primary btn-sm" href="/my-lessons">{{ _("Learner View") }}</a>
+		</div>
+		<div id="ds-msg"></div>
+
+		<div class="row mb-4">
+			<div class="col-md-3 col-6 mb-3">
+				<div class="card ds-card h-100">
+					<div class="card-body">
+						<div class="ds-stat text-primary" id="i-today">—</div>
+						<div class="text-muted small">{{ _("Lessons Today") }}</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-3 col-6 mb-3">
+				<div class="card ds-card h-100">
+					<div class="card-body">
+						<div class="ds-stat text-success" id="i-upcoming">—</div>
+						<div class="text-muted small">{{ _("Upcoming Lessons") }}</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-3 col-6 mb-3">
+				<div class="card ds-card h-100">
+					<div class="card-body">
+						<div class="ds-stat" id="i-leave">—</div>
+						<div class="text-muted small">{{ _("Leave Records") }}</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-3 col-6 mb-3">
+				<div class="card ds-card h-100">
+					<div class="card-body">
+						<div class="ds-stat text-warning" id="i-pending">—</div>
+						<div class="text-muted small">{{ _("Leave Pending") }}</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="card ds-card mb-4">
+			<div class="card-header bg-white"><strong>{{ _("Today's Lessons") }}</strong></div>
+			<ul class="list-group list-group-flush" id="today-list"></ul>
+		</div>
+
+		<div class="card ds-card mb-4">
+			<div class="card-header bg-white"><strong>{{ _("Upcoming Lessons") }}</strong></div>
+			<ul class="list-group list-group-flush" id="upcoming-list"></ul>
+		</div>
+
+		<div class="row">
+			<div class="col-md-7 mb-4">
+				<div class="card ds-card h-100">
+					<div class="card-header bg-white"><strong>{{ _("My Leave") }}</strong></div>
+					<ul class="list-group list-group-flush" id="leave-list"></ul>
+				</div>
+			</div>
+			<div class="col-md-5 mb-4">
+				<div class="card ds-card h-100">
+					<div class="card-header bg-white"><strong>{{ _("Request Leave") }}</strong></div>
+					<div class="card-body">
+						<div class="form-group">
+							<label>{{ _("From Date") }}</label>
+							<input type="date" class="form-control" id="l-from">
+						</div>
+						<div class="form-group">
+							<label>{{ _("To Date") }}</label>
+							<input type="date" class="form-control" id="l-to">
+						</div>
+						<div class="form-group">
+							<label>{{ _("Reason") }}</label>
+							<textarea class="form-control" id="l-reason" rows="2"></textarea>
+						</div>
+						<button class="btn btn-primary btn-block" id="l-submit">{{ _("Submit Request") }}</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	{% endif %}
+</div>
+{% endblock %}

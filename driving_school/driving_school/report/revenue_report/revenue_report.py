@@ -11,6 +11,7 @@ def execute(filters=None):
 		{"label": _("Payment Date"), "fieldname": "payment_date", "fieldtype": "Date", "width": 110},
 		{"label": _("Learner"), "fieldname": "learner", "fieldtype": "Link", "options": "Learner", "width": 130},
 		{"label": _("Learner Name"), "fieldname": "learner_name", "fieldtype": "Data", "width": 180},
+		{"label": _("Branch"), "fieldname": "branch", "fieldtype": "Link", "options": "Driving School Branch", "width": 130},
 		{"label": _("Package"), "fieldname": "package", "fieldtype": "Link", "options": "Learner Package", "width": 130},
 		{"label": _("Type"), "fieldname": "payment_type", "fieldtype": "Data", "width": 120},
 		{"label": _("Mode"), "fieldname": "mode_of_payment", "fieldtype": "Data", "width": 120},
@@ -33,12 +34,16 @@ def execute(filters=None):
 	if filters.get("status"):
 		conditions += " and lp.status = %(status)s"
 		params["status"] = filters.get("status")
+	if filters.get("branch"):
+		conditions += " and l.branch = %(branch)s"
+		params["branch"] = filters.get("branch")
 
 	data = frappe.db.sql(
 		"""
-		select lp.payment_date, lp.learner, lp.learner_name, lp.package,
+		select lp.payment_date, lp.learner, lp.learner_name, l.branch, lp.package,
 			lp.payment_type, lp.mode_of_payment, lp.amount, lp.status
 		from `tabLearner Payment` lp
+		left join `tabLearner` l on l.name = lp.learner
 		where {conditions}
 		order by lp.payment_date desc, lp.creation desc
 		""".format(conditions=conditions),

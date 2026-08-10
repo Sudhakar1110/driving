@@ -16,6 +16,12 @@ frappe.query_reports["Revenue Report"] = {
 			"default": frappe.datetime.get_today(),
 		},
 		{
+			"fieldname": "branch",
+			"label": __("Branch"),
+			"fieldtype": "Link",
+			"options": "Driving School Branch",
+		},
+		{
 			"fieldname": "payment_type",
 			"label": __("Payment Type"),
 			"fieldtype": "Select",

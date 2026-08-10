@@ -4,9 +4,14 @@ import datetime
 
 import frappe
 from frappe import _
-from frappe.utils import cint, getdate, nowdate
+from frappe.utils import cint, getdate, nowdate, validate_email_address
 
-from driving_school.utils import get_demo_learner, get_learner_for_user, to_time
+from driving_school.utils import (
+	get_demo_learner,
+	get_instructor_for_user,
+	get_learner_for_user,
+	to_time,
+)
 
 ACTIVE_BOOKING_STATUSES = ["Requested", "Confirmed", "On Waitlist"]
 
@@ -589,3 +594,190 @@ def submit_feedback(instructor, lesson=None, rating=5, comments=None):
 	)
 	doc.insert(ignore_permissions=True)
 	return {"name": doc.name, "status": "Submitted"}
+
+
+# ---------------------------------------------------------------- public forms
+
+_VALID_CATEGORIES = {"Car", "Motorcycle", "Heavy Vehicle", "Bus", "Other"}
+
+
+@frappe.whitelist()
+def submit_enquiry(full_name, mobile_number, category, email=None, message=None):
+	"""Public lead-capture form - creates an Enquiry (status New)."""
+	full_name = (full_name or "").strip()
+	mobile_number = (mobile_number or "").strip()
+	category = (category or "").strip()
+
+	if not full_name or not mobile_number:
+		frappe.throw(_("Name and mobile number are required."))
+	if category not in _VALID_CATEGORIES:
+		frappe.throw(_("Please choose a valid category."))
+
+	doc = frappe.get_doc(
+		{
+			"doctype": "Enquiry",
+			"lead_name": full_name,
+			"mobile_number": mobile_number,
+			"email": (email or "").strip(),
+			"category_of_interest": category,
+			"source": "Website",
+			"status": "New",
+			"remarks": (message or "").strip(),
+		}
+	)
+	doc.insert(ignore_permissions=True)
+	return {"name": doc.name, "status": doc.status}
+
+
+@frappe.whitelist()
+def register_learner(full_name, mobile_number, email, category, password=None, city=None, address=None):
+	"""Public self-registration - creates a Learner (and portal user when a password is given)."""
+	full_name = (full_name or "").strip()
+	mobile_number = (mobile_number or "").strip()
+	email = (email or "").strip()
+	category = (category or "").strip()
+
+	if not full_name or not mobile_number or not email:
+		frappe.throw(_("Name, mobile number and email are required."))
+	if not validate_email_address(email):
+		frappe.throw(_("Please enter a valid email address."))
+	if category not in _VALID_CATEGORIES:
+		frappe.throw(_("Please choose a valid category."))
+
+	if password:
+		# Create the portal user up front so the password is set at creation.
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": full_name,
+				"new_password": password,
+				"send_welcome_email": False,
+				"roles": [{"role": "Learner"}],
+			}
+		)
+		try:
+			user.insert(ignore_permissions=True)
+		except frappe.DuplicateEntryError:
+			frappe.throw(_("An account with this email already exists. Please log in instead."))
+
+	learner = frappe.get_doc(
+		{
+			"doctype": "Learner",
+			"learner_name": full_name,
+			"mobile_number": mobile_number,
+			"email": email,
+			"category": category,
+			"city": (city or "").strip(),
+			"address": (address or "").strip(),
+			"source": "Website",
+			"status": "Registered",
+			"training_stage": "Not Started",
+		}
+	)
+	learner.insert(ignore_permissions=True)
+	return {"name": learner.name, "learner_name": learner.learner_name}
+
+
+# ---------------------------------------------------------------- instructor portal
+
+def _get_instructor():
+	"""Driving Instructor linked to the logged-in user (no demo fallback)."""
+	user = frappe.session.user
+	if not user or user == "Guest":
+		frappe.throw(_("Please log in with your instructor account."), frappe.PermissionError)
+	name = get_instructor_for_user(user)
+	if not name:
+		frappe.throw(
+			_("Your user account is not linked to a Driving Instructor profile."),
+			frappe.PermissionError,
+		)
+	return name
+
+
+@frappe.whitelist()
+def get_instructor_dashboard():
+	"""Today's and upcoming lessons plus leave for the logged-in instructor."""
+	instructor = _get_instructor()
+	fields = ["name", "learner_name", "lesson_date", "start_time", "end_time", "vehicle", "status", "remarks"]
+
+	todays_lessons = frappe.get_all(
+		"Lesson Booking",
+		filters={
+			"instructor": instructor,
+			"lesson_date": nowdate(),
+			"status": ["in", ACTIVE_BOOKING_STATUSES],
+		},
+		fields=fields,
+		order_by="start_time asc",
+	)
+	upcoming_lessons = frappe.get_all(
+		"Lesson Booking",
+		filters={
+			"instructor": instructor,
+			"lesson_date": [">", nowdate()],
+			"status": ["in", ACTIVE_BOOKING_STATUSES],
+		},
+		fields=fields,
+		order_by="lesson_date asc, start_time asc",
+		limit_page_length=30,
+	)
+	leave = frappe.get_all(
+		"Instructor Leave",
+		filters={"instructor": instructor},
+		fields=["name", "from_date", "to_date", "status", "reason"],
+		order_by="from_date desc",
+		limit_page_length=10,
+	)
+
+	for booking in todays_lessons + upcoming_lessons:
+		booking["vehicle_number"] = frappe.db.get_value(
+			"Driving Vehicle", booking.vehicle, "vehicle_number"
+		)
+
+	return {
+		"instructor": instructor,
+		"todays_lessons": todays_lessons,
+		"upcoming_lessons": upcoming_lessons,
+		"leave": leave,
+	}
+
+
+@frappe.whitelist()
+def update_lesson_status(lesson_booking, status, instructor_notes=None):
+	"""Mark an assigned lesson Completed or No Show from the instructor portal."""
+	instructor = _get_instructor()
+	if status not in ("Completed", "No Show"):
+		frappe.throw(_("Invalid lesson status."))
+
+	doc = frappe.get_doc("Lesson Booking", lesson_booking)
+	if doc.instructor != instructor:
+		frappe.throw(_("This lesson is not assigned to you."), frappe.PermissionError)
+	if doc.status in ("Completed", "Cancelled", "No Show"):
+		frappe.throw(_("This lesson is already {0}.").format(doc.status))
+	if getdate(doc.lesson_date) > getdate(nowdate()):
+		frappe.throw(_("You can only update lessons for today or earlier."))
+
+	doc.status = status
+	if instructor_notes:
+		doc.instructor_notes = (instructor_notes or "").strip()
+	doc.save(ignore_permissions=True)
+	return {"name": doc.name, "status": doc.status}
+
+
+@frappe.whitelist()
+def request_instructor_leave(from_date, to_date, reason=None):
+	"""Submit an instructor leave request from the portal."""
+	instructor = _get_instructor()
+	doc = frappe.get_doc(
+		{
+			"doctype": "Instructor Leave",
+			"instructor": instructor,
+			"from_date": from_date,
+			"to_date": to_date,
+			"reason": (reason or "").strip(),
+			"status": "Requested",
+		}
+	)
+	doc.insert(ignore_permissions=True)
+	return {"name": doc.name, "status": doc.status}

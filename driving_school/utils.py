@@ -32,6 +32,18 @@ def get_demo_learner():
 	return frappe.db.get_value("Learner", {}, "name", order_by="creation asc")
 
 
+def get_instructor_for_user(user=None):
+	"""Return the Driving Instructor linked to a user, or None."""
+	user = user or frappe.session.user
+	if not user or user == "Guest":
+		return None
+
+	name = frappe.db.get_value("Driving Instructor", {"user": user}, "name")
+	if not name:
+		name = frappe.db.get_value("Driving Instructor", {"email": user}, "name")
+	return name
+
+
 def get_learner_for_context():
 	"""Learner for the current request (public demo mode).
 
