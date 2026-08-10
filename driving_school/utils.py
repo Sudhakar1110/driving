@@ -154,7 +154,12 @@ def to_time(value):
 
 	Frappe does not expose ``frappe.utils.to_time``, so this local helper is used.
 	Accepts a ``datetime.time``, a ``datetime.timedelta`` (as returned by the
-	MariaDB driver for TIME columns) or a "HH:MM[:SS]" string.
+	MariaDB driver for TIME columns) or a string. Handles "HH:MM[:SS]", stray
+	separators ("9.00" / "9-00"), 12-hour values ("9:00 AM") and even a full
+	datetime string ("2026-08-10 09:00:00") left behind by older data.
+
+	Returns ``None`` when the value cannot be parsed so callers can fall back
+	to their defaults instead of crashing.
 	"""
 	if isinstance(value, datetime.time):
 		return value
@@ -162,10 +167,36 @@ def to_time(value):
 		seconds = int(value.total_seconds()) % 86400
 		return (datetime.datetime(2000, 1, 1) + datetime.timedelta(seconds=seconds)).time()
 	if isinstance(value, str):
-		value = value.strip()
-		for fmt in ("%H:%M:%S", "%H:%M"):
-			try:
-				return datetime.datetime.strptime(value, fmt).time()
-			except ValueError:
-				continue
-	return value
+		raw = value.strip()
+		if not raw:
+			return None
+		lower = raw.lower()
+		pm = lower.endswith("pm")
+		am = lower.endswith("am")
+		if am or pm:
+			raw = raw[:-2].strip()
+		if " " in raw:
+			raw = raw.split()[-1]  # full datetime string -> keep the time part
+
+		t = _parse_time(raw)
+		if t is None:
+			# tolerate stray separators, e.g. "9.00" or "9-00"
+			t = _parse_time(raw.replace(".", ":").replace("-", ":"))
+		if t is None:
+			return None
+		if pm and t.hour < 12:
+			t = t.replace(hour=t.hour + 12)
+		if am and t.hour == 12:
+			t = t.replace(hour=0)
+		return t
+	return None
+
+
+def _parse_time(raw):
+	"""Try common time formats, returning datetime.time or None."""
+	for fmt in ("%H:%M:%S", "%H:%M"):
+		try:
+			return datetime.datetime.strptime(raw, fmt).time()
+		except ValueError:
+			continue
+	return None

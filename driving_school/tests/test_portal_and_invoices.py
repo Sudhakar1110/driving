@@ -1,10 +1,13 @@
 from __future__ import unicode_literals
 
+import datetime
+
 import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, nowdate
 
 from driving_school.api import (
+	get_available_slots,
 	get_class_schedules,
 	get_instructor_dashboard,
 	register_learner,
@@ -12,7 +15,7 @@ from driving_school.api import (
 	update_lesson_status,
 )
 from driving_school.tests.helpers import make_instructor, make_learner, make_vehicle
-from driving_school.utils import get_learner_for_context
+from driving_school.utils import get_learner_for_context, to_time
 
 
 class TestPublicForms(IntegrationTestCase):
@@ -226,6 +229,73 @@ class TestSalesInvoiceBridge(IntegrationTestCase):
 		self.assertEqual(
 			frappe.db.get_value("Learner Package", package.name, "balance_amount"), 0
 		)
+
+
+class TestToTimeRobustness(IntegrationTestCase):
+	"""Regression: unparseable business-hour settings crashed the slot APIs
+	(TypeError: combine() argument 2 must be datetime.time, not str)."""
+
+	def test_parses_common_formats(self):
+		self.assertEqual(to_time("09:00:00"), datetime.time(9, 0))
+		self.assertEqual(to_time("9:00"), datetime.time(9, 0))
+		self.assertEqual(to_time("9.00"), datetime.time(9, 0))
+		self.assertEqual(to_time("9:00 AM"), datetime.time(9, 0))
+		self.assertEqual(to_time("2026-08-10 09:00:00"), datetime.time(9, 0))
+		self.assertEqual(to_time(datetime.timedelta(hours=9)), datetime.time(9, 0))
+
+	def test_unparseable_returns_none(self):
+		self.assertIsNone(to_time("garbage"))
+		self.assertIsNone(to_time(""))
+		self.assertIsNone(to_time(None))
+
+	def test_slots_work_with_messy_business_hours(self):
+		"""Slot generation must fall back to defaults instead of crashing."""
+		settings = frappe.get_single("Driving School Settings")
+		settings.business_start_time = "9.00"
+		settings.business_end_time = "17.00"
+		settings.lesson_duration_minutes = 60
+		settings.save(ignore_permissions=True)
+
+		# Guest access resolves to the demo (first) learner - ensure one exists
+		make_learner("Settings Slot Learner")
+		frappe.set_user("Guest")
+		slots = get_available_slots(lesson_date=add_days(nowdate(), 1))
+		self.assertTrue(slots)
+		self.assertTrue(any(s["available"] for s in slots))
+
+	def test_booked_slot_is_unavailable_when_resource_selected(self):
+		"""Regression: TIME key normalisation - the MariaDB driver returns
+		timedelta ('9:00:00', unpadded) which used to mismatch the zero-padded
+		slot keys ('09:00:00'), so booked slots looked available."""
+		settings = frappe.get_single("Driving School Settings")
+		settings.business_start_time = "09:00:00"
+		settings.business_end_time = "10:00:00"
+		settings.lesson_duration_minutes = 60
+		settings.save(ignore_permissions=True)
+
+		learner = make_learner("Key Normalise Learner")
+		instructor = make_instructor(["Car"])
+		vehicle = make_vehicle()
+		frappe.get_doc(
+			{
+				"doctype": "Lesson Booking",
+				"learner": learner.name,
+				"instructor": instructor.name,
+				"vehicle": vehicle.name,
+				"lesson_date": add_days(nowdate(), 1),
+				"start_time": "09:00:00",
+				"status": "Confirmed",
+			}
+		).insert(ignore_permissions=True)
+
+		frappe.set_user("Guest")
+		slots = get_available_slots(
+			lesson_date=add_days(nowdate(), 1),
+			instructor=instructor.name,
+			vehicle=vehicle.name,
+		)
+		self.assertEqual(len(slots), 1)
+		self.assertFalse(slots[0]["available"])
 
 
 class TestClassSchedules(IntegrationTestCase):

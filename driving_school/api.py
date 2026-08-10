@@ -223,9 +223,9 @@ def get_class_schedules(days=7):
 		pluck="name",
 	)
 
-	start_t = to_time(settings.business_start_time) if settings.business_start_time else datetime.time(9, 0)
-	end_t = to_time(settings.business_end_time) if settings.business_end_time else datetime.time(18, 0)
-	duration = cint(settings.lesson_duration_minutes) or 60
+	start_t = to_time(settings.business_start_time) or datetime.time(9, 0)
+	end_t = to_time(settings.business_end_time) or datetime.time(18, 0)
+	duration = max(cint(settings.lesson_duration_minutes) or 60, 1)
 
 	days_out = []
 	cur_day = getdate(date_from)
@@ -251,7 +251,7 @@ def get_class_schedules(days=7):
 			row[0]
 			for row in frappe.db.sql(
 				"""
-				select date_format(start_time, '%H:%i:%s') from `tabLesson Booking`
+				select date_format(start_time, '%%H:%%i:%%s') from `tabLesson Booking`
 				where lesson_date = %s and status in ("Requested", "Confirmed", "On Waitlist")
 				""",
 				day_str,
@@ -292,9 +292,9 @@ def get_available_slots(lesson_date, instructor=None, vehicle=None):
 	learner = _get_learner()
 	settings = frappe.get_single("Driving School Settings")
 
-	start_t = to_time(settings.business_start_time) if settings.business_start_time else datetime.time(9, 0)
-	end_t = to_time(settings.business_end_time) if settings.business_end_time else datetime.time(18, 0)
-	duration = cint(settings.lesson_duration_minutes) or 60
+	start_t = to_time(settings.business_start_time) or datetime.time(9, 0)
+	end_t = to_time(settings.business_end_time) or datetime.time(18, 0)
+	duration = max(cint(settings.lesson_duration_minutes) or 60, 1)
 
 	booked = frappe.get_all(
 		"Lesson Booking",
@@ -304,7 +304,10 @@ def get_available_slots(lesson_date, instructor=None, vehicle=None):
 
 	busy = {"learner": set(), "instructor": set(), "vehicle": set()}
 	for b in booked:
-		key = str(b.start_time)
+		# normalise the TIME value (timedelta / unpadded string) to a
+		# zero-padded "HH:MM:SS" key so it matches the slot keys below
+		t = to_time(b.start_time)
+		key = t.strftime("%H:%M:%S") if t else str(b.start_time)
 		busy["learner"].add((b.learner, key))
 		if b.instructor:
 			busy["instructor"].add((b.instructor, key))
