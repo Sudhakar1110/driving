@@ -5,6 +5,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import getdate, today
 
+from driving_school.install import set_learner_home_page
+
 
 class Learner(Document):
 	def validate(self):
@@ -62,7 +64,6 @@ class Learner(Document):
 			user.email = self.email
 			user.first_name = self.learner_name
 			user.send_welcome_email = False
-			user.home_page = "/portal-home"
 			user.append("roles", {"role": "Learner"})
 			try:
 				user.insert(ignore_permissions=True)
@@ -70,17 +71,15 @@ class Learner(Document):
 				frappe.log_error(frappe.get_traceback(), "Driving School: portal user creation failed")
 				return
 
+		# Learners land on the portal after login. Frappe v15 removed
+		# User.home_page, so the home page is applied at the Role level.
+		set_learner_home_page()
+
 		if self.user != self.email:
 			self.db_set("user", self.email)
 
 	def add_learner_role(self, user):
-		"""Ensure the user has the Learner role and lands on the portal after login."""
-		changed = False
+		"""Ensure the user has the Learner role (safe no-op when already present)."""
 		if not any(r.role == "Learner" for r in user.roles):
 			user.append("roles", {"role": "Learner"})
-			changed = True
-		if not user.home_page:
-			user.home_page = "/portal-home"
-			changed = True
-		if changed:
 			user.save(ignore_permissions=True)

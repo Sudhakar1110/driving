@@ -42,8 +42,9 @@ class TestPublicForms(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("User", email))
 		user = frappe.get_doc("User", email)
 		self.assertTrue(any(r.role == "Learner" for r in user.roles))
-		# Portal home page so learners never land on the desk after login
-		self.assertEqual(frappe.db.get_value("User", email, "home_page"), "/portal-home")
+		# Portal home page so learners never land on the desk after login.
+		# Frappe v15 removed User.home_page - it is applied at the Role level.
+		self.assertEqual(frappe.db.get_value("Role", "Learner", "home_page"), "/portal-home")
 
 	def test_register_learner_requires_valid_email(self):
 		with self.assertRaises(frappe.ValidationError):
@@ -57,6 +58,30 @@ class TestPublicForms(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Learner", name, "email"), "Administrator")
 		# second call reuses the same profile
 		self.assertEqual(get_learner_for_context()[0], name)
+
+	def test_learner_desk_save_with_existing_user_does_not_crash(self):
+		"""Saving a Learner in the desk whose email matches an existing user must
+		not crash (regression: User.home_page was removed in Frappe v15)."""
+		email = "desk.save.{0}@example.test".format(frappe.generate_hash("", 6))
+		frappe.get_doc(
+			{"doctype": "User", "email": email, "first_name": "Desk Save", "send_welcome_email": False}
+		).insert(ignore_permissions=True)
+
+		learner = frappe.get_doc(
+			{
+				"doctype": "Learner",
+				"learner_name": "Desk Save Learner",
+				"mobile_number": "9876543211",
+				"email": email,
+				"status": "Registered",
+			}
+		)
+		learner.insert(ignore_permissions=True)  # triggers sync_portal_user
+		learner.learner_name = "Desk Save Learner 2"
+		learner.save(ignore_permissions=True)  # on_update -> sync_portal_user again
+		self.assertTrue(frappe.db.exists("Learner", learner.name))
+		user = frappe.get_doc("User", email)
+		self.assertTrue(any(r.role == "Learner" for r in user.roles))
 
 
 class TestInstructorPortal(IntegrationTestCase):

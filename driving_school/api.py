@@ -773,7 +773,6 @@ def register_learner(full_name, mobile_number, email, category, password=None, c
 				"first_name": full_name,
 				"new_password": password,
 				"send_welcome_email": False,
-				"home_page": "/portal-home",
 				"roles": [{"role": "Learner"}],
 			}
 		)
